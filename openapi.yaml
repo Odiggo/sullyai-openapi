@@ -4,10 +4,10 @@ info:
   description: The Sully API is a robust platform designed to empower healthcare technology companies and Electronic Health Record (EHR) vendors by integrating advanced AI-driven clinical capabilities to help save healthcare providers (HCPs) time and make better decisions.
   version: "0.2.0"
 servers:
-  - url: https://api-testing.sully.ai
-    description: Sully Testing API
   - url: https://api.sully.ai
     description: Sully Production API
+  - url: https://api-testing.sully.ai
+    description: Sully Testing API
 security:
   - apiKeyAuth: []
     accountIdAuth: []
@@ -39,7 +39,7 @@ paths:
     delete:
       description: Deletes a single note based on the ID supplied
       parameters:
-        - name: id
+        - name: noteId
           in: path
           description: ID of note to delete
           required: true
@@ -109,6 +109,13 @@ paths:
   /v1/audio/transcriptions/{transcriptionId}:
     get:
       description: Gets a single audio transcription based on the ID supplied
+      parameters:
+        - name: transcriptionId
+          in: path
+          description: ID of the transcription to retrieve
+          required: true
+          schema:
+            type: string
       responses:
         "200":
           description: Audio transcription response
@@ -126,13 +133,12 @@ paths:
     delete:
       description: Deletes a single audio transcription based on the ID supplied
       parameters:
-        - name: id
+        - name: transcriptionId
           in: path
           description: ID of audio transcription to delete
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
       responses:
         "200":
           description: Audio transcription deleted
@@ -255,10 +261,12 @@ components:
 
     CreateNotePayload:
       type: object
+      required:
+        - transcript
+        - date
       properties:
         transcript:
           type: string
-          required: true
           example: >-
             Hey, how's it going? Good good yeah, so what's going on? Yeah, hi I'm
             Edward yeah hi hi Edward. How's it going? Yeah, good good. So I've been
@@ -267,7 +275,6 @@ components:
           type: string
           format: date
           description: Date of the patient encounter
-          required: true
         noteType:
           type: object
           properties:
@@ -377,11 +384,12 @@ components:
 
     CreateNoteStylePayload:
       type: object
+      required:
+        - sampleNote
       properties:
         sampleNote:
           type: string
           description: Sample note text to base the style on
-          required: true
 
         instructions:
           type: array
@@ -476,7 +484,26 @@ components:
         - audio
 
     CreateAudioTranscriptionResponse:
-      type: string
+      type: object
+      properties:
+        status:
+          type: string
+          example: "ok"
+        data:
+          type: object
+          properties:
+            transcriptionId:
+              type: string
+              description: "Unique identifier for the audio transcription request."
+              example: "tr_14266a21-e7e7-43ab-b8f8-7290e5451b79"
+            message:
+              type: string
+              description: "Informational message about the request status."
+              example: "Your transcription request has been received and is currently processing."
+            status:
+              type: string
+              description: "The processing status of the transcription request. Always 'pending'."
+              example: "pending"
 
     DeleteResponse:
       type: object
@@ -810,7 +837,7 @@ components:
 
     HeadingSection:
       allOf:
-        - $ref: '#/components/schemas/BaseSection'
+        - $ref: "#/components/schemas/BaseSection"
       description: Defines a heading section with properties and children.
       properties:
         type:
@@ -827,19 +854,19 @@ components:
         children:
           type: array
           items:
-            $ref: '#/components/schemas/Section'
+            $ref: "#/components/schemas/Section"
           description: Nested sections under the heading.
 
     TextSection:
       allOf:
-        - $ref: '#/components/schemas/BaseSection'
+        - $ref: "#/components/schemas/BaseSection"
       description: Defines a text section with properties and generated results.
       properties:
         type:
           type: string
           enum: [text]
         properties:
-          $ref: '#/components/schemas/TextContentProperties'
+          $ref: "#/components/schemas/TextContentProperties"
         label:
           type: string
           description: An optional label for the text section.
@@ -871,14 +898,14 @@ components:
 
     ListSection:
       allOf:
-        - $ref: '#/components/schemas/BaseSection'
+        - $ref: "#/components/schemas/BaseSection"
       description: Defines a list section with properties and generated list items.
       properties:
         type:
           type: string
           enum: [list]
         properties:
-          $ref: '#/components/schemas/TextContentProperties'
+          $ref: "#/components/schemas/TextContentProperties"
         list_type:
           type: string
           enum: [bullet, numeric]
@@ -897,9 +924,9 @@ components:
 
     Section:
       oneOf:
-        - $ref: '#/components/schemas/HeadingSection'
-        - $ref: '#/components/schemas/TextSection'
-        - $ref: '#/components/schemas/ListSection'
+        - $ref: "#/components/schemas/HeadingSection"
+        - $ref: "#/components/schemas/TextSection"
+        - $ref: "#/components/schemas/ListSection"
       description: Union of different content section types.
 
     NoteTemplate:
@@ -918,7 +945,7 @@ components:
         sections:
           type: array
           items:
-            $ref: '#/components/schemas/Section'
+            $ref: "#/components/schemas/Section"
           description: List of sections included in the note template.
       required:
         - id
