@@ -1,0 +1,936 @@
+openapi: 3.1.0
+info:
+  title: Sully API
+  description: The Sully API is a robust platform designed to empower healthcare technology companies and Electronic Health Record (EHR) vendors by integrating advanced AI-driven clinical capabilities to help save healthcare providers (HCPs) time and make better decisions.
+  version: "0.2.0"
+servers:
+  - url: https://api-testing.sully.ai
+    description: Sully Testing API
+  - url: https://api.sully.ai
+    description: Sully Production API
+security:
+  - apiKeyAuth: []
+    accountIdAuth: []
+paths:
+  /v1/notes/{noteId}:
+    get:
+      description: Gets a single note based on the ID supplied
+      parameters:
+        - name: noteId
+          in: path
+          description: ID of note to get
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Note response
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/GetNoteResponse"
+        "400":
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      description: Deletes a single note based on the ID supplied
+      parameters:
+        - name: id
+          in: path
+          description: ID of note to delete
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Note deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResponse"
+        "400":
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /v1/notes:
+    post:
+      description: Creates a new note
+      requestBody:
+        description: Note to add
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateNotePayload"
+        required: true
+      responses:
+        "200":
+          description: Note response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateNoteResponse"
+        "400":
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v1/note-styles:
+    post:
+      description: Creates a note style
+      requestBody:
+        description: Note style to add
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateNoteStylePayload"
+        required: true
+      responses:
+        "200":
+          description: Note style response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateNoteStyleResponse"
+        "400":
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v1/audio/transcriptions/{transcriptionId}:
+    get:
+      description: Gets a single audio transcription based on the ID supplied
+      responses:
+        "200":
+          description: Audio transcription response
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/GetAudioTranscriptionResponse"
+        "400":
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      description: Deletes a single audio transcription based on the ID supplied
+      parameters:
+        - name: id
+          in: path
+          description: ID of audio transcription to delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: Audio transcription deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResponse"
+        "400":
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /v1/audio/transcriptions:
+    post:
+      description: Creates a new audio transcription
+      requestBody:
+        description: Audio transcription to add
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/CreateAudioTranscriptionPayload"
+        required: true
+      responses:
+        "200":
+          description: Audio transcription response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateAudioTranscriptionResponse"
+        "400":
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /v1/audio/transcriptions/stream/token:
+    post:
+      description: Create a temporary authentication token for Streaming Speech-to-Text
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                expiresIn:
+                  type: integer
+                  description: Duration of the token in seconds
+                  example: 3600
+                  minimum: 60
+                  maximum: 604800
+              required:
+                - expiresIn
+        required: true
+      responses:
+        "200":
+          description: Audio transcription stream token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: tok_eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+        "400":
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+components:
+  schemas:
+    GetNoteResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: ok
+          description: Status of the response
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              example: note_14266a21-e7e7-43ab-b8f8-7290e5451b79
+              description: Unique identifier for the audio transcription
+            payload:
+              type: object
+              description: Either markdown or JSON representation of the note. Both can be present as well.
+              properties:
+                markdown:
+                  type: string
+                  description: Markdown string of the note
+                json:
+                  type: object
+                  description: JSON object of the note. The note style used will determine which fields are present. See the [SOAP Note](/api-reference/schemas/soap-note) example.
+
+            status:
+              type: string
+              example: STATUS_DONE
+              description: Processing status of the note
+            timestamp:
+              type: object
+              properties:
+                start:
+                  type: integer
+                  example: 1731014849730
+                  description: Start timestamp
+                complete:
+                  type: integer
+                  example: 1731014853958
+                  description: Complete timestamp
+        date:
+          type: string
+          format: date-time
+          example: 2024-11-07T21:27:39Z
+          description: Timestamp of the response
+
+    CreateNotePayload:
+      type: object
+      properties:
+        transcript:
+          type: string
+          required: true
+          example: >-
+            Hey, how's it going? Good good yeah, so what's going on? Yeah, hi I'm
+            Edward yeah hi hi Edward. How's it going? Yeah, good good. So I've been
+            having a couple of issues like my back pain and knee pain.
+        date:
+          type: string
+          format: date
+          description: Date of the patient encounter
+          required: true
+        noteType:
+          type: object
+          properties:
+            description:
+              type: string
+              description: A brief overview of the note.
+            type:
+              type: string
+              description: >-
+                Determines the type of note to generate.
+
+                - Use `note_style` to provide a note style string
+
+                - Use `note_template` to provide a [Note Template](/api-reference/schemas/note-template) payload
+
+                - Use `soap` for the default SOAP template
+              enum:
+                - soap
+                - note_style
+                - note_template
+              default: soap
+              example: note_style
+            template:
+              oneOf:
+                - type: string
+                - type: object
+              description: >-
+                Custom template to generate the note. This is applicable only when `type` 
+                is set to `note_style` or `note_template`.
+
+                - When `type` is `note_style`, this is a note style string
+
+                - When `type` is `note_template`, this is a [Note Template](/api-reference/schemas/note-template) payload
+              example: >-
+                write a standard clinical SOAP note with the following sections:
+                - **Subjective**: Contains detailed HPI.
+                - **Objective**: Contains PE and ROS.
+                - **Assessment**: Contains differential diagnoses with corresponding plans.
+                - **Patient Instructions**: Contains a list of instructions for the patient.
+            includeJson:
+              type: boolean
+              description: >-
+                Determines whether to include a JSON payload in the custom note output. 
+                This option is applicable only for custom notes and defaults to `false`. 
+                Enabling this will increase latency and payload size.
+              default: false
+              example: true
+
+        patientInfo:
+          type: object
+          description: Optional patient information
+          properties:
+            name:
+              type: string
+            dateOfBirth:
+              type: string
+              format: date
+            gender:
+              type: string
+              enum:
+                - male
+                - female
+                - other
+                - prefer not to say
+                - unspecified
+        previousNote:
+          type: string
+          description: Reference to a previous note if this is a follow-up. This field is optional.
+        context:
+          type: string
+          nullable: true
+          description: Additional context for note generation. This field is optional.
+        instructions:
+          type: array
+          items:
+            type: string
+          nullable: true
+          description: Special instructions for note generation. This field is optional.
+          example:
+            - "Use a professional and concise tone."
+            - "Include key details without unnecessary elaboration."
+            - "Ensure clarity for a general audience."
+
+        medicationList:
+          type: string
+          description: List of up to 50 medications (comma separated) to use as reference for fixing spelling errors. This field is optional.
+
+    CreateNoteResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: ok
+          description: Status of the response
+        data:
+          type: object
+          properties:
+            noteId:
+              type: string
+              example: note_14266a21-e7e7-43ab-b8f8-7290e5451b79
+              description: Unique identifier for the created note
+        date:
+          type: string
+          format: date-time
+          example: 2024-11-07T21:24:51Z
+          description: Timestamp of the response
+
+    CreateNoteStylePayload:
+      type: object
+      properties:
+        sampleNote:
+          type: string
+          description: Sample note text to base the style on
+          required: true
+
+        instructions:
+          type: array
+          items:
+            type: string
+          description: Optional instructions for note generation
+          default: []
+
+    CreateNoteStyleResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          description: Status of the response
+          example: ok
+        data:
+          type: object
+          properties:
+            template:
+              type: string
+              description: The created note style
+              example: "[POPULATE THIS TEMPLATE WITH THE INFORMATION FROM THE ENCOUNTER ONLY. DO NOT MAKE ANY ASSUMPTIONS. WRITE THE NOTE FROM THE PHYSICIAN'S PERSPECTIVE. DO NOT MISS ANY DETAIL IN EACH SECTION. MAKE SURE EVERY RELEVANT SENTENCE IN THE TRANSCRIPT IS ACCOUNTED FOR IN THE NOTE PRODUCED.]\n\n[INCLUDE DATE OF ENCOUNTER]\n\nCC: [INSERT CHIEF COMPLAINT]\n\nHPI:\n[SUMMARIZE THE HISTORY OF PRESENT ILLNESS IN PARAGRAPH FORM, FOLLOWING THESE GUIDELINES:]\n•..."
+        date:
+          type: string
+          format: date-time
+          description: Timestamp of the response
+
+    GetAudioTranscriptionResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: ok
+          description: Status of the response
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              example: tr_14266a21-e7e7-43ab-b8f8-7290e5451b79
+              description: Unique identifier for the audio transcription
+            payload:
+              type: object
+              description: Either markdown or JSON representation of the note. Both can be present as well.
+              properties:
+                transcription:
+                  type: string
+                  description: Transcription of the audio
+            timestamp:
+              type: object
+              properties:
+                start:
+                  type: integer
+                  example: 1731014849730
+                  description: Start timestamp
+                complete:
+                  type: integer
+                  example: 1731014853958
+                  description: Complete timestamp
+        date:
+          type: string
+          format: date-time
+          example: 2024-11-07T21:27:39Z
+          description: Timestamp of the response
+
+    CreateAudioTranscriptionPayload:
+      type: object
+      properties:
+        audio:
+          type: string
+          format: binary
+          description: >-
+            Audio file to transcribe (supported formats: wav, mp3, m4a, ogg)
+        language:
+          type: string
+          description: >-
+            Language code for transcription:
+
+            - English (en-US, en-GB)
+            - Spanish (es)
+            - French (fr)
+            - German (de)
+            - Italian (it)
+            - Portuguese (pt)
+            - Dutch (nl)
+            - Japanese (ja)
+            - Korean (ko)
+            - Chinese (zh)
+            - Russian (ru)
+          example: en-US
+      required:
+        - audio
+
+    CreateAudioTranscriptionResponse:
+      type: string
+
+    DeleteResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: ok
+          description: Status of the response
+        date:
+          type: string
+          format: date-time
+          example: 2024-11-21T14:38:24.093Z
+          description: Timestamp of the response
+
+    Error:
+      required:
+        - error
+        - message
+      type: object
+      properties:
+        error:
+          type: integer
+          format: int32
+        message:
+          type: string
+
+    SoapNote:
+      type: object
+      properties:
+        chief_complaints:
+          type: array
+          items:
+            type: string
+          description: List of chief complaints
+        history_of_present_illness_summary:
+          type: string
+          description: History of Present Illness summary
+        history_of_present_illness:
+          type: array
+          items:
+            type: object
+            properties:
+              title:
+                type: string
+              detail:
+                type: string
+        physical_exam:
+          type: object
+          properties:
+            vitals:
+              type: object
+              properties:
+                bp:
+                  type: string
+                  description: Blood pressure
+                heart_rate:
+                  type: integer
+                  description: Heart rate
+                respiratory_rate:
+                  type: integer
+                  description: Respiratory rate
+                temperature:
+                  type: integer
+                  description: Temperature
+            general_appearance:
+              type: array
+              items:
+                type: string
+            head:
+              type: array
+              items:
+                type: string
+            eyes:
+              type: array
+              items:
+                type: string
+            ears:
+              type: array
+              items:
+                type: string
+            nose:
+              type: array
+              items:
+                type: string
+            throat:
+              type: array
+              items:
+                type: string
+            neck:
+              type: array
+              items:
+                type: string
+            respiratory:
+              type: array
+              items:
+                type: string
+            cardiovascular:
+              type: array
+              items:
+                type: string
+            gastrointestinal:
+              type: array
+              items:
+                type: string
+            genitourinary:
+              type: array
+              items:
+                type: string
+            neurological:
+              type: array
+              items:
+                type: string
+            musculoskeletal:
+              type: array
+              items:
+                type: string
+            other:
+              type: array
+              items:
+                type: string
+        review_of_systems:
+          type: object
+          properties:
+            general:
+              type: array
+              items:
+                type: string
+            skin:
+              type: array
+              items:
+                type: string
+            head:
+              type: array
+              items:
+                type: string
+            ears:
+              type: array
+              items:
+                type: string
+            eyes:
+              type: array
+              items:
+                type: string
+            nose:
+              type: array
+              items:
+                type: string
+            throat:
+              type: array
+              items:
+                type: string
+            neck:
+              type: array
+              items:
+                type: string
+            breasts:
+              type: array
+              items:
+                type: string
+            respiratory:
+              type: array
+              items:
+                type: string
+            cardiovascular:
+              type: array
+              items:
+                type: string
+            gastrointestinal:
+              type: array
+              items:
+                type: string
+            genitourinary:
+              type: array
+              items:
+                type: string
+            vascular:
+              type: array
+              items:
+                type: string
+            musculoskeletal:
+              type: array
+              items:
+                type: string
+            neurological:
+              type: array
+              items:
+                type: string
+            hematologic:
+              type: array
+              items:
+                type: string
+            endocrine:
+              type: array
+              items:
+                type: string
+            psychiatric:
+              type: array
+              items:
+                type: string
+        assessment_and_plan:
+          type: array
+          items:
+            type: object
+            properties:
+              problem:
+                type: string
+              diagnosis_title:
+                type: string
+              assessment:
+                type: string
+              plan:
+                type: string
+              icd_10:
+                type: object
+                properties:
+                  code:
+                    type: string
+                  description:
+                    type: string
+        past_medical_history:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              status:
+                type: string
+              began:
+                type: string
+              ended:
+                type: string
+                nullable: true
+        family_history:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              relationship:
+                type: string
+              status:
+                type: string
+              began:
+                type: string
+              ended:
+                type: string
+                nullable: true
+        social_history:
+          type: object
+          properties:
+            occupation:
+              type: string
+            marital_status:
+              type: string
+            children:
+              type: string
+        patient_instructions:
+          type: array
+          items:
+            type: string
+        cpt_icd10_code_pairs:
+          type: array
+          items:
+            type: object
+            properties:
+              cpt:
+                type: string
+              icd_10:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    code:
+                      type: string
+                    description:
+                      type: string
+        billing_cpt:
+          type: object
+          additionalProperties:
+            type: string
+        billing_icd10:
+          type: object
+          additionalProperties:
+            type: string
+
+    BaseSection:
+      type: object
+      description: Base structure for different content sections.
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the section.
+        type:
+          type: string
+          enum: [heading, text, list]
+          description: Specifies the type of content in the section.
+
+    TextContentProperties:
+      type: object
+      description: Common properties for text-based content.
+      properties:
+        bold:
+          type: boolean
+          description: Whether the text should be bold.
+        italic:
+          type: boolean
+          description: Whether the text should be italicized.
+        hideIfEmpty:
+          type: boolean
+          description: Whether to hide the content if it's empty.
+        formatting_style:
+          type: string
+          enum: [markdown, plain]
+          default: markdown
+          description: Specifies the formatting style of the text.
+        detail_level:
+          type: string
+          enum: [exhaustive, detailed, standard, brief, minimal]
+          default: standard
+          description: Determines the level of detail in the text content.
+        tone:
+          type: string
+          enum: [formal, casual, technical, friendly, instructional]
+          default: formal
+          description: Defines the tone of the generated text.
+        emptyPlaceholder:
+          type: string
+          description: Placeholder text to display if content is empty.
+
+    HeadingSection:
+      allOf:
+        - $ref: '#/components/schemas/BaseSection'
+      description: Defines a heading section with properties and children.
+      properties:
+        type:
+          type: string
+          enum: [heading]
+        level:
+          type: integer
+          minimum: 0
+          maximum: 6
+          description: Specifies the heading level (e.g., H1 to H6).
+        text:
+          type: string
+          description: The actual text of the heading.
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/Section'
+          description: Nested sections under the heading.
+
+    TextSection:
+      allOf:
+        - $ref: '#/components/schemas/BaseSection'
+      description: Defines a text section with properties and generated results.
+      properties:
+        type:
+          type: string
+          enum: [text]
+        properties:
+          $ref: '#/components/schemas/TextContentProperties'
+        label:
+          type: string
+          description: An optional label for the text section.
+        bold_label:
+          type: boolean
+          description: Whether the label should be bold.
+        italic_label:
+          type: boolean
+          description: Whether the label should be italicized.
+        list_type:
+          type: string
+          enum: [bullet, numeric]
+          description: Defines whether text should be formatted as a bullet or numeric list.
+        min_sentences:
+          type: integer
+          description: Minimum number of sentences required.
+        max_sentences:
+          type: integer
+          description: Maximum number of sentences allowed.
+        min_paragraphs:
+          type: integer
+          description: Minimum number of paragraphs required.
+        max_paragraphs:
+          type: integer
+          description: Maximum number of paragraphs allowed.
+        result:
+          type: string
+          description: The generated text content.
+
+    ListSection:
+      allOf:
+        - $ref: '#/components/schemas/BaseSection'
+      description: Defines a list section with properties and generated list items.
+      properties:
+        type:
+          type: string
+          enum: [list]
+        properties:
+          $ref: '#/components/schemas/TextContentProperties'
+        list_type:
+          type: string
+          enum: [bullet, numeric]
+          description: Defines whether the list is bulleted or numbered.
+        min_items:
+          type: integer
+          description: Minimum number of items required in the list.
+        max_items:
+          type: integer
+          description: Maximum number of items allowed in the list.
+        result:
+          type: array
+          items:
+            type: string
+          description: The generated list items.
+
+    Section:
+      oneOf:
+        - $ref: '#/components/schemas/HeadingSection'
+        - $ref: '#/components/schemas/TextSection'
+        - $ref: '#/components/schemas/ListSection'
+      description: Union of different content section types.
+
+    NoteTemplate:
+      type: object
+      description: Defines the structure of a note template with validation for heading nesting depth.
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the note template.
+        title:
+          type: string
+          description: Title of the note template.
+        globalPrompt:
+          type: string
+          description: Optional global prompt for content generation.
+        sections:
+          type: array
+          items:
+            $ref: '#/components/schemas/Section'
+          description: List of sections included in the note template.
+      required:
+        - id
+        - title
+        - sections
+
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+    accountIdAuth:
+      type: apiKey
+      in: header
+      name: X-ACCOUNT-ID
