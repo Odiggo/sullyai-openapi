@@ -996,7 +996,12 @@ components:
           example: Patient is a 45-year-old male presenting with chest pain...
         schema:
           type: object
-          description: JSON Schema that defines the structure of the data to extract
+          description: >-
+            JSON Schema that defines the structure of the data to extract. 
+            IMPORTANT SCHEMA REQUIREMENTS:
+            1. All fields MUST be marked as required
+            2. For nullable fields, use union type syntax: "type": ["string", "null"]
+            3. The schema root must be an object type
           example:
             type: object
             properties:
@@ -1007,6 +1012,11 @@ components:
                     type: number
                   gender:
                     type: string
+                  allergies:
+                    type: ["array", "null"]
+                    items:
+                      type: string
+                required: [age, gender, allergies]
               symptoms:
                 type: array
                 items:
@@ -1015,6 +1025,13 @@ components:
                 type: array
                 items:
                   type: string
+              severityLevel:
+                type: string
+                enum: ["mild", "moderate", "severe", "critical"]
+              notes:
+                type: ["string", "null"]
+                description: "Optional clinical notes that might be null"
+            required: [patientInfo, symptoms, diagnosis, severityLevel, notes]
 
     SchemaFromTextResponse:
       type: object
@@ -1026,9 +1043,12 @@ components:
             patientInfo:
               age: 45
               gender: male
+              allergies: null
             symptoms:
               - chest pain
             diagnosis: []
+            severityLevel: "moderate"
+            notes: null
 
   securitySchemes:
     apiKeyAuth:
