@@ -211,6 +211,38 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /v1/schema/from-text:
+    post:
+      description: >-
+        [BETA] Extracts structured data from unstructured text according to a provided JSON schema.
+        This endpoint converts free-form content into structured JSON data.
+      requestBody:
+        description: Text and schema for extraction
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SchemaFromTextPayload"
+        required: true
+      responses:
+        "200":
+          description: Structured data extracted from text
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SchemaFromTextResponse"
+        "400":
+          description: Invalid input or schema
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Server-side processing error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
 components:
   schemas:
     GetNoteResponse:
@@ -951,6 +983,52 @@ components:
         - id
         - title
         - sections
+
+    SchemaFromTextPayload:
+      type: object
+      required:
+        - text
+        - schema
+      properties:
+        text:
+          type: string
+          description: Unstructured text from which to extract structured data
+          example: Patient is a 45-year-old male presenting with chest pain...
+        schema:
+          type: object
+          description: JSON Schema that defines the structure of the data to extract
+          example:
+            type: object
+            properties:
+              patientInfo:
+                type: object
+                properties:
+                  age:
+                    type: number
+                  gender:
+                    type: string
+              symptoms:
+                type: array
+                items:
+                  type: string
+              diagnosis:
+                type: array
+                items:
+                  type: string
+
+    SchemaFromTextResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          description: Extracted structured data that conforms to the provided schema
+          example:
+            patientInfo:
+              age: 45
+              gender: male
+            symptoms:
+              - chest pain
+            diagnosis: []
 
   securitySchemes:
     apiKeyAuth:
