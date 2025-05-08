@@ -203,7 +203,7 @@ paths:
                 properties:
                   token:
                     type: string
-                    example: tok_eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+                    example: tok_EXAMPLE123456789
         "400":
           description: unexpected error
           content:
@@ -243,6 +243,86 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /v1/codings:
+    post:
+      description: Creates a new coding analysis request from medical conversation text
+      requestBody:
+        description: Text content to analyze for medical coding
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCodingPayload"
+        required: true
+      responses:
+        "200":
+          description: Coding analysis request created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateCodingResponse"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v1/codings/{codingId}:
+    get:
+      description: Retrieves a coding analysis result by ID
+      parameters:
+        - name: codingId
+          in: path
+          description: ID of the coding analysis to retrieve
+          required: true
+          schema:
+            type: string
+            example: coding_EXAMPLE123456789
+      responses:
+        "200":
+          description: Coding analysis result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetCodingResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Coding analysis not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      description: Deletes a coding analysis by ID
+      parameters:
+        - name: codingId
+          in: path
+          description: ID of the coding analysis to delete
+          required: true
+          schema:
+            type: string
+            example: coding_EXAMPLE123456789
+      responses:
+        "204":
+          description: Coding analysis successfully deleted (No Content)
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Coding analysis not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
 components:
   schemas:
     GetNoteResponse:
@@ -257,7 +337,7 @@ components:
           properties:
             id:
               type: string
-              example: note_14266a21-e7e7-43ab-b8f8-7290e5451b79
+              example: note_EXAMPLE123456789
               description: Unique identifier for the audio transcription
             payload:
               type: object
@@ -406,7 +486,7 @@ components:
           properties:
             noteId:
               type: string
-              example: note_14266a21-e7e7-43ab-b8f8-7290e5451b79
+              example: note_EXAMPLE123456789
               description: Unique identifier for the created note
         date:
           type: string
@@ -461,7 +541,7 @@ components:
           properties:
             id:
               type: string
-              example: tr_14266a21-e7e7-43ab-b8f8-7290e5451b79
+              example: tr_EXAMPLE123456789
               description: Unique identifier for the audio transcription
             payload:
               type: object
@@ -527,7 +607,7 @@ components:
             transcriptionId:
               type: string
               description: "Unique identifier for the audio transcription request."
-              example: "tr_14266a21-e7e7-43ab-b8f8-7290e5451b79"
+              example: "tr_EXAMPLE123456789"
             message:
               type: string
               description: "Informational message about the request status."
@@ -968,6 +1048,7 @@ components:
         id:
           type: string
           description: Unique identifier for the note template.
+          example: template_EXAMPLE123456789
         title:
           type: string
           description: Title of the note template.
@@ -1049,6 +1130,192 @@ components:
             diagnosis: []
             severityLevel: "moderate"
             notes: null
+
+    CreateCodingPayload:
+      type: object
+      required:
+        - text
+      properties:
+        text:
+          type: string
+          description: Transcript text of the medical conversation to analyze
+          example: >-
+            [0:00]
+            Doctor: Hi John, good to see you again. How've you been holding up?
+
+            Patient: Hey doc. It's been alright, but I've been feeling kind of off the last few weeks.
+
+    CreateCodingResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              description: Unique identifier for the coding analysis request
+              example: coding_EXAMPLE123456789
+            status:
+              type: string
+              description: Status of the coding analysis request
+              example: pending
+              enum:
+                - pending
+                - processing
+                - complete
+                - failed
+            created_at:
+              type: string
+              format: date-time
+              description: Timestamp when the request was created
+              example: 2025-05-08T15:07:54.984Z
+            updated_at:
+              type: string
+              format: date-time
+              description: Timestamp when the request was last updated
+              example: 2025-05-08T15:07:54.984Z
+
+    GetCodingResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              description: Unique identifier for the coding analysis request
+              example: coding_EXAMPLE123456789
+            status:
+              type: string
+              description: Status of the coding analysis request
+              example: completed
+              enum:
+                - pending
+                - processing
+                - completed
+                - failed
+            created_at:
+              type: string
+              format: date-time
+              description: Timestamp when the request was created
+              example: 2025-05-08T15:07:54.984Z
+            updated_at:
+              type: string
+              format: date-time
+              description: Timestamp when the request was last updated
+              example: 2025-05-08T15:08:22.499Z
+            processing_time_ms:
+              type: number
+              description: Time taken to process the request in milliseconds
+              example: 27340.929076
+            result:
+              type: object
+              description: Results of the coding analysis
+              properties:
+                diagnoses:
+                  type: array
+                  description: List of diagnoses identified in the text
+                  items:
+                    $ref: "#/components/schemas/CodingDiagnosis"
+                procedures:
+                  type: array
+                  description: List of procedures identified in the text
+                  items:
+                    $ref: "#/components/schemas/CodingProcedure"
+
+    CodingDiagnosis:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the diagnosis within the response
+          example: diagnosis-example-1
+        code:
+          type: object
+          properties:
+            coding:
+              type: array
+              items:
+                type: object
+                properties:
+                  system:
+                    type: string
+                    description: Coding system identifier
+                    example: http://hl7.org/fhir/sid/icd-10-cm
+                  code:
+                    type: string
+                    description: Code value from the specified system
+                    example: I10
+                  display:
+                    type: string
+                    description: Human-readable representation of the code
+                    example: Essential (primary) hypertension
+            text:
+              type: string
+              description: Plain text representation of the diagnosis
+              example: Hypertension
+        text_span:
+          type: object
+          properties:
+            start_char:
+              type: integer
+              description: Starting character position in the original text
+              example: 1022
+            end_char:
+              type: integer
+              description: Ending character position in the original text
+              example: 1039
+            text:
+              type: string
+              description: The actual text from the transcript
+              example: slightly elevated
+
+    CodingProcedure:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the procedure within the response
+          example: procedure-example-1
+        code:
+          type: object
+          properties:
+            coding:
+              type: array
+              items:
+                type: object
+                properties:
+                  system:
+                    type: string
+                    description: Coding system identifier
+                    example: http://www.ama-assn.org/go/cpt
+                  code:
+                    type: string
+                    description: Code value from the specified system
+                    example: 93000
+                  display:
+                    type: string
+                    description: Human-readable representation of the code
+                    example: Electrocardiogram, routine ECG with at least 12 leads; with interpretation and report
+            text:
+              type: string
+              description: Plain text representation of the procedure
+              example: EKG
+        text_span:
+          type: object
+          properties:
+            start_char:
+              type: integer
+              description: Starting character position in the original text
+              example: 2124
+            end_char:
+              type: integer
+              description: Ending character position in the original text
+              example: 2127
+            text:
+              type: string
+              description: The actual text from the transcript
+              example: EKG
 
   securitySchemes:
     apiKeyAuth:
