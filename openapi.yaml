@@ -297,6 +297,31 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+    delete:
+      description: Deletes a coding analysis by ID
+      parameters:
+        - name: codingId
+          in: path
+          description: ID of the coding analysis to delete
+          required: true
+          schema:
+            type: string
+            example: coding_EXAMPLE123456789
+      responses:
+        "204":
+          description: Coding analysis successfully deleted (No Content)
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Coding analysis not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
 components:
   schemas:
