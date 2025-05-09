@@ -1348,7 +1348,7 @@ components:
               type: string
               description: The actual text from the transcript
               example: EKG
-              
+
     TextToJsonPayload:
       type: object
       description: Request payload for transforming unstructured text into structured JSON
@@ -1422,7 +1422,7 @@ components:
         text:
           type: string
           description: The text to analyze for macros
-          example: The patient is a 54-year-old male here for a routine follow-up. Reports feeling well overall. Quickcheck. Denies any new symptoms. Medications reviewed and no changes needed. No signs of infection. Standard plan applies. Discussed flu vaccine and colonoscopy timeline. Return visit scheduled in six months.
+          example: "The patient is a 54-year-old male here for a routine follow-up. Reports feeling well overall. Quickcheck. Denies any new symptoms. Medications reviewed and no changes needed. No signs of infection. Standard plan applies. Discussed flu vaccine and colonoscopy timeline. Return visit scheduled in six months."
         macros:
           type: array
           description: An array of macro objects to detect in the text
@@ -1451,7 +1451,7 @@ components:
               expansion_text:
                 type: string
                 description: The text that should replace the macro when expanded
-                example: General: Patient appears well-nourished and in no acute distress. HEENT: Normocephalic, atraumatic. Heart: Regular rate and rhythm. Lungs: Clear to auscultation bilaterally.
+                example: "General - Patient appears well-nourished and in no acute distress. HEENT - Normocephalic, atraumatic. Heart - Regular rate and rhythm. Lungs - Clear to auscultation bilaterally."
 
     MacroDetectResponse:
       type: object
@@ -1497,7 +1497,7 @@ components:
             expanded_text:
               type: string
               description: The original text with all detected macros expanded
-              example: The patient is a 54-year-old male here for a routine follow-up. Reports feeling well overall. General: Patient appears well-nourished and in no acute distress. HEENT: Normocephalic, atraumatic. Heart: Regular rate and rhythm. Lungs: Clear to auscultation bilaterally.. Denies any new symptoms. Medications reviewed and no changes needed. No signs of infection. Plan: Continue current medications. Reassess in 6 months or as needed. Patient advised to follow up for any new or worsening symptoms. applies. Discussed flu vaccine and colonoscopy timeline. Return visit scheduled in six months.
+              example: "The patient is a 54-year-old male here for a routine follow-up. Reports feeling well overall. General - Patient appears well-nourished and in no acute distress. HEENT - Normocephalic, atraumatic. Heart - Regular rate and rhythm. Lungs - Clear to auscultation bilaterally. Denies any new symptoms. Medications reviewed and no changes needed. No signs of infection. Plan - Continue current medications. Reassess in 6 months or as needed. Patient advised to follow up for any new or worsening symptoms. Discussed flu vaccine and colonoscopy timeline. Return visit scheduled in six months."
 
   securitySchemes:
     apiKeyAuth:
