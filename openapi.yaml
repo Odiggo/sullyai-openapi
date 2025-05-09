@@ -11,9 +11,26 @@ servers:
 security:
   - apiKeyAuth: []
     accountIdAuth: []
+tags:
+  - name: Notes
+    description: Operations for creating and managing clinical notes from medical encounters
+  - name: Note Styles
+    description: Operations for managing templates and formatting styles for clinical notes
+  - name: Audio Transcriptions
+    description: Operations for converting medical audio to text, including streaming capability
+  - name: Utilities
+    description: Utility operations for transforming and processing medical data
+  - name: Codings
+    description: Operations for medical coding analysis including ICD-10 and CPT code extraction
+  - name: Macros
+    description: Operations for detecting and expanding text macros in medical documentation
 paths:
   /v1/notes/{noteId}:
     get:
+      tags:
+        - Notes
+      summary: Get a single note by ID
+      operationId: getNoteById
       description: Gets a single note based on the ID supplied
       parameters:
         - name: noteId
@@ -37,6 +54,10 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
     delete:
+      tags:
+        - Notes
+      summary: Delete a note by ID
+      operationId: deleteNoteById
       description: Deletes a single note based on the ID supplied
       parameters:
         - name: noteId
@@ -60,6 +81,10 @@ paths:
                 $ref: "#/components/schemas/Error"
   /v1/notes:
     post:
+      tags:
+        - Notes
+      summary: Create a new clinical note
+      operationId: createNote
       description: Creates a new note
       requestBody:
         description: Note to add
@@ -84,6 +109,10 @@ paths:
 
   /v1/note-styles:
     post:
+      tags:
+        - Note Styles
+      summary: Create a new note style template
+      operationId: createNoteStyle
       description: Creates a note style
       requestBody:
         description: Note style to add
@@ -108,6 +137,10 @@ paths:
 
   /v1/audio/transcriptions/{transcriptionId}:
     get:
+      tags:
+        - Audio Transcriptions
+      summary: Get a single audio transcription by ID
+      operationId: getAudioTranscriptionById
       description: Gets a single audio transcription based on the ID supplied
       parameters:
         - name: transcriptionId
@@ -131,6 +164,10 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
     delete:
+      tags:
+        - Audio Transcriptions
+      summary: Delete an audio transcription by ID
+      operationId: deleteAudioTranscriptionById
       description: Deletes a single audio transcription based on the ID supplied
       parameters:
         - name: transcriptionId
@@ -154,6 +191,10 @@ paths:
                 $ref: "#/components/schemas/Error"
   /v1/audio/transcriptions:
     post:
+      tags:
+        - Audio Transcriptions
+      summary: Create a new audio transcription
+      operationId: createAudioTranscription
       description: Creates a new audio transcription
       requestBody:
         description: Audio transcription to add
@@ -177,6 +218,10 @@ paths:
                 $ref: "#/components/schemas/Error"
   /v1/audio/transcriptions/stream/token:
     post:
+      tags:
+        - Audio Transcriptions
+      summary: Create a streaming transcription token
+      operationId: createStreamingTranscriptionToken
       description: Create a temporary authentication token for Streaming Speech-to-Text
       requestBody:
         content:
@@ -211,25 +256,29 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /v1/schema/from-text:
+  /v1/utils/text-to-json:
     post:
+      tags:
+        - Utilities
+      summary: Transform unstructured text to structured JSON
+      operationId: transformTextToJson
       description: >-
-        [BETA] Extracts structured data from unstructured text according to a provided JSON schema.
-        This endpoint converts free-form content into structured JSON data.
+        Transforms unstructured text into structured JSON according to a provided schema.
+        This utility endpoint extracts specific data patterns from free-form content.
       requestBody:
-        description: Text and schema for extraction
+        description: Text and schema for transformation
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/SchemaFromTextPayload"
+              $ref: "#/components/schemas/TextToJsonPayload"
         required: true
       responses:
         "200":
-          description: Structured data extracted from text
+          description: JSON data extracted from text
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SchemaFromTextResponse"
+                $ref: "#/components/schemas/TextToJsonResponse"
         "400":
           description: Invalid input or schema
           content:
@@ -245,6 +294,10 @@ paths:
 
   /v1/codings:
     post:
+      tags:
+        - Codings
+      summary: Create a new medical coding analysis
+      operationId: createCodingAnalysis
       description: Creates a new coding analysis request from medical conversation text
       requestBody:
         description: Text content to analyze for medical coding
@@ -269,6 +322,10 @@ paths:
 
   /v1/codings/{codingId}:
     get:
+      tags:
+        - Codings
+      summary: Get a coding analysis by ID
+      operationId: getCodingAnalysisById
       description: Retrieves a coding analysis result by ID
       parameters:
         - name: codingId
@@ -298,6 +355,10 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
     delete:
+      tags:
+        - Codings
+      summary: Delete a coding analysis by ID
+      operationId: deleteCodingAnalysisById
       description: Deletes a coding analysis by ID
       parameters:
         - name: codingId
@@ -318,6 +379,34 @@ paths:
                 $ref: "#/components/schemas/Error"
         "404":
           description: Coding analysis not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v1/macros/detect:
+    post:
+      tags:
+        - Macros
+      summary: Detect and expand text macros
+      operationId: detectAndExpandMacros
+      description: Detects macros in text and provides expanded text with the macros replaced by their expansions
+      requestBody:
+        description: Text to analyze for macros
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MacroDetectPayload"
+        required: true
+      responses:
+        "200":
+          description: Macro detection result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MacroDetectResponse"
+        "400":
+          description: Invalid request
           content:
             application/json:
               schema:
@@ -379,6 +468,7 @@ components:
       properties:
         transcript:
           type: string
+          description: The raw medical transcript text to be processed into a clinical note
           example: >-
             Hey, how's it going? Good good yeah, so what's going on? Yeah, hi I'm
             Edward yeah hi hi Edward. How's it going? Yeah, good good. So I've been
@@ -389,6 +479,7 @@ components:
           description: Date of the patient encounter
         noteType:
           type: object
+          description: Configuration object specifying the style and format of the generated note
           properties:
             description:
               type: string
@@ -441,11 +532,14 @@ components:
           properties:
             name:
               type: string
+              description: Patient's full name
             dateOfBirth:
               type: string
               format: date
+              description: Patient's date of birth in ISO-8601 format (YYYY-MM-DD)
             gender:
               type: string
+              description: Patient's gender identity
               enum:
                 - male
                 - female
@@ -1065,72 +1159,6 @@ components:
         - title
         - sections
 
-    SchemaFromTextPayload:
-      type: object
-      required:
-        - text
-        - schema
-      properties:
-        text:
-          type: string
-          description: Unstructured text from which to extract structured data
-          example: Patient is a 45-year-old male presenting with chest pain...
-        schema:
-          type: object
-          description: >-
-            JSON Schema that defines the structure of the data to extract. 
-            IMPORTANT SCHEMA REQUIREMENTS:
-            1. All fields MUST be marked as required
-            2. For nullable fields, use union type syntax: "type": ["string", "null"]
-            3. The schema root must be an object type
-          example:
-            type: object
-            properties:
-              patientInfo:
-                type: object
-                properties:
-                  age:
-                    type: number
-                  gender:
-                    type: string
-                  allergies:
-                    type: ["array", "null"]
-                    items:
-                      type: string
-                required: [age, gender, allergies]
-              symptoms:
-                type: array
-                items:
-                  type: string
-              diagnosis:
-                type: array
-                items:
-                  type: string
-              severityLevel:
-                type: string
-                enum: ["mild", "moderate", "severe", "critical"]
-              notes:
-                type: ["string", "null"]
-                description: "Optional clinical notes that might be null"
-            required: [patientInfo, symptoms, diagnosis, severityLevel, notes]
-
-    SchemaFromTextResponse:
-      type: object
-      properties:
-        data:
-          type: object
-          description: Extracted structured data that conforms to the provided schema
-          example:
-            patientInfo:
-              age: 45
-              gender: male
-              allergies: null
-            symptoms:
-              - chest pain
-            diagnosis: []
-            severityLevel: "moderate"
-            notes: null
-
     CreateCodingPayload:
       type: object
       required:
@@ -1147,9 +1175,11 @@ components:
 
     CreateCodingResponse:
       type: object
+      description: Response containing the initial status of a newly created coding analysis request
       properties:
         data:
           type: object
+          description: Data object containing the coding analysis metadata
           properties:
             id:
               type: string
@@ -1177,9 +1207,11 @@ components:
 
     GetCodingResponse:
       type: object
+      description: Response containing the complete coding analysis results
       properties:
         data:
           type: object
+          description: Data object containing the coding analysis and its results
           properties:
             id:
               type: string
@@ -1316,6 +1348,156 @@ components:
               type: string
               description: The actual text from the transcript
               example: EKG
+              
+    TextToJsonPayload:
+      type: object
+      description: Request payload for transforming unstructured text into structured JSON
+      required:
+        - text
+        - schema
+      properties:
+        text:
+          type: string
+          description: Unstructured text to transform
+          example: Patient is a 45-year-old male presenting with chest pain...
+        schema:
+          type: object
+          description: JSON Schema for transforming text into structured data
+          example:
+            type: object
+            properties:
+              patientInfo:
+                type: object
+                properties:
+                  age:
+                    type: number
+                  gender:
+                    type: string
+                  allergies:
+                    type: ["array", "null"]
+                    items:
+                      type: string
+                required: [age, gender, allergies]
+              symptoms:
+                type: array
+                items:
+                  type: string
+              diagnosis:
+                type: array
+                items:
+                  type: string
+              severityLevel:
+                type: string
+                enum: ["mild", "moderate", "severe", "critical"]
+              notes:
+                type: ["string", "null"]
+                description: "Optional clinical notes that might be null"
+            required: [patientInfo, symptoms, diagnosis, severityLevel, notes]
+
+    TextToJsonResponse:
+      type: object
+      description: Response containing the structured JSON data extracted from text
+      properties:
+        data:
+          type: object
+          description: Extracted structured data that conforms to the provided schema
+          example:
+            patientInfo:
+              age: 45
+              gender: male
+              allergies: null
+            symptoms:
+              - chest pain
+            diagnosis: []
+            severityLevel: "moderate"
+            notes: null
+
+    MacroDetectPayload:
+      type: object
+      description: Request payload for detecting and expanding macros in medical text
+      required:
+        - text
+        - macros
+      properties:
+        text:
+          type: string
+          description: The text to analyze for macros
+          example: The patient is a 54-year-old male here for a routine follow-up. Reports feeling well overall. Quickcheck. Denies any new symptoms. Medications reviewed and no changes needed. No signs of infection. Standard plan applies. Discussed flu vaccine and colonoscopy timeline. Return visit scheduled in six months.
+        macros:
+          type: array
+          description: An array of macro objects to detect in the text
+          items:
+            type: object
+            description: A macro definition with examples and expansion text
+            required:
+              - id
+              - examples
+              - expansion_text
+            properties:
+              id:
+                type: string
+                description: A unique identifier for the macro
+                example: brief_exam_note
+              examples:
+                type: array
+                description: An array of example strings that represent the macro in text
+                items:
+                  type: string
+                  description: An example text string representing the macro
+                example:
+                  - quickcheck
+                  - quick check
+                  - quick-check
+              expansion_text:
+                type: string
+                description: The text that should replace the macro when expanded
+                example: General: Patient appears well-nourished and in no acute distress. HEENT: Normocephalic, atraumatic. Heart: Regular rate and rhythm. Lungs: Clear to auscultation bilaterally.
+
+    MacroDetectResponse:
+      type: object
+      description: Response containing detected macros and expanded text
+      properties:
+        data:
+          type: object
+          description: Result data object containing detections and expanded text
+          properties:
+            detections:
+              type: array
+              description: Array of detected macros in the text
+              items:
+                type: object
+                description: A single macro detection result
+                properties:
+                  macro_id:
+                    type: string
+                    description: The ID of the detected macro
+                    example: brief_exam_note
+                  text_span:
+                    type: object
+                    description: Position information about the detected macro in the original text
+                    properties:
+                      start_char:
+                        type: integer
+                        description: The starting character position of the detected macro in the original text
+                        example: 94
+                      end_char:
+                        type: integer
+                        description: The ending character position of the detected macro in the original text
+                        example: 104
+                      text:
+                        type: string
+                        description: The text of the detected macro
+                        example: Quickcheck
+                  confidence:
+                    type: number
+                    description: A confidence score between 0 and 1 indicating the system's confidence in the detection
+                    example: 0.98
+                    minimum: 0
+                    maximum: 1
+            expanded_text:
+              type: string
+              description: The original text with all detected macros expanded
+              example: The patient is a 54-year-old male here for a routine follow-up. Reports feeling well overall. General: Patient appears well-nourished and in no acute distress. HEENT: Normocephalic, atraumatic. Heart: Regular rate and rhythm. Lungs: Clear to auscultation bilaterally.. Denies any new symptoms. Medications reviewed and no changes needed. No signs of infection. Plan: Continue current medications. Reassess in 6 months or as needed. Patient advised to follow up for any new or worsening symptoms. applies. Discussed flu vaccine and colonoscopy timeline. Return visit scheduled in six months.
 
   securitySchemes:
     apiKeyAuth:
