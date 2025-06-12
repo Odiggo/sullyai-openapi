@@ -477,6 +477,14 @@ components:
           type: string
           format: date
           description: Date of the patient encounter
+        language:
+          type: string
+          enum: ['en', 'es', 'fr', 'de', 'it', 'pt', 'ru', 'zh']
+          default: 'en'
+          description: >-
+            Language code for the transcript content. While multiple languages are supported, 
+            English ('en') is recommended for optimal output quality and accuracy.
+          example: 'en'
         noteType:
           type: object
           description: Configuration object specifying the style and format of the generated note
