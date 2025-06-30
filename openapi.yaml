@@ -464,7 +464,6 @@ components:
       type: object
       required:
         - transcript
-        - date
       properties:
         transcript:
           type: string
@@ -475,8 +474,11 @@ components:
             having a couple of issues like my back pain and knee pain.
         date:
           type: string
-          format: date
-          description: Date of the patient encounter
+          description: Date of the patient encounter in ISO format (YYYY-MM-DD) or ISO datetime format (YYYY-MM-DDTHH:mm:ssZ)
+          examples:
+            date_only: "2024-11-07"
+            datetime: "2024-11-07T21:24:51Z"
+          pattern: '^(\d{4}-\d{2}-\d{2}|\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)$'
         language:
           type: string
           enum: ['en', 'es', 'fr', 'de', 'it', 'pt', 'ru', 'zh']
