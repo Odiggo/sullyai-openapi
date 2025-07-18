@@ -1,7 +1,55 @@
 openapi: 3.1.0
 info:
   title: Sully API
-  description: The Sully API is a robust platform designed to empower healthcare technology companies and Electronic Health Record (EHR) vendors by integrating advanced AI-driven clinical capabilities to help save healthcare providers (HCPs) time and make better decisions.
+  description: |
+    The Sully API is a robust platform designed to empower healthcare technology companies and Electronic Health Record (EHR) vendors by integrating advanced AI-driven clinical capabilities to help save healthcare providers (HCPs) time and make better decisions.
+    
+    ## V2 Audio Transcriptions
+    
+    The V2 Audio Transcriptions API provides enhanced audio transcription services using advanced AI models with improved accuracy and language support.
+    
+    ### Authentication
+    
+    The API uses API key authentication. You must include both:
+    - `X-API-Key`: Your API key
+    - `X-Account-Id`: Your account identifier
+    
+    ### Rate Limiting
+    
+    The API implements rate limiting to ensure fair usage. Rate limit information is returned in response headers:
+    - `X-RateLimit-Limit`: Maximum requests allowed
+    - `X-RateLimit-Remaining`: Remaining requests in current window
+    - `X-RateLimit-Reset`: When the rate limit resets
+    
+    ### Audio File Support
+    
+    Supported audio formats:
+    - WAV (audio/wav, audio/wave, audio/x-wav)
+    - MP3 (audio/mpeg, audio/mp3)
+    - FLAC (audio/flac)
+    - OGG (audio/ogg)
+    - WebM (audio/webm)
+    - MP4 (audio/mp4)
+    - M4A (audio/m4a)
+    - AAC (audio/aac)
+    - Opus (audio/opus)
+    
+    Maximum file size: 100MB
+    
+    ### Language Support
+    
+    The API supports multiple languages with different models:
+    - **Nova-3 Medical**: English (en, en-US) - Optimized for medical terminology
+    - **Nova-3 General**: Spanish (es), German (de), French (fr), Hindi (hi), Italian (it), Japanese (ja), Dutch (nl), Portuguese (pt), Russian (ru)
+    - **Nova-2 General**: Additional languages including Chinese, Korean, and many others
+    
+    ### Processing
+    
+    V2 Transcriptions are processed asynchronously:
+    1. Upload returns immediately with `pending` status
+    2. Processing happens in the background
+    3. Status updates to `processing`, then `completed` or `failed`
+    4. Webhook notifications are sent when processing completes (if configured)
   version: "0.2.0"
 servers:
   - url: https://api.sully.ai
@@ -18,6 +66,17 @@ tags:
     description: Operations for managing templates and formatting styles for clinical notes
   - name: Audio Transcriptions
     description: Operations for converting medical audio to text, including streaming capability
+  - name: V2 Transcriptions
+    description: |
+      V2 Audio transcription operations with enhanced features
+      
+      The V2 Transcriptions API allows you to convert audio files to text using advanced AI models.
+      Features include:
+      - Multi-language support with specialized medical models
+      - Speaker diarization (identifying different speakers)
+      - Word-level timestamps and confidence scores
+      - Automatic audio format conversion
+      - Asynchronous processing with webhook notifications
   - name: Utilities
     description: Utility operations for transforming and processing medical data
   - name: Codings
@@ -255,6 +314,196 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+
+  /v2/audio/transcriptions:
+    post:
+      summary: Create transcription
+      description: |
+        Upload an audio file for transcription
+        
+        Processing is asynchronous - the endpoint returns immediately with a `pending` status.
+        Use the GET endpoint to check status and retrieve results.
+      operationId: createV2Transcription
+      tags:
+        - V2 Transcriptions
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - audio
+              properties:
+                audio:
+                  type: string
+                  format: binary
+                  description: Audio file to transcribe (max 100MB)
+                language:
+                  $ref: '#/components/schemas/V2LanguageCode'
+                encoding:
+                  $ref: '#/components/schemas/V2AudioEncoding'
+                multichannel:
+                  type: boolean
+                  default: false
+                  description: Enable multichannel audio processing
+            examples:
+              basic_transcription:
+                summary: Basic English transcription
+                value:
+                  language: en
+                  multichannel: false
+              spanish_transcription:
+                summary: Spanish transcription with encoding
+                value:
+                  language: es
+                  encoding: linear16
+                  multichannel: false
+      responses:
+        '201':
+          description: Transcription created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V2TranscriptionResponse'
+              examples:
+                pending_transcription:
+                  summary: Newly created transcription
+                  value:
+                    data:
+                      id: "tr_abc123def456"
+                      status: "pending"
+                      created_at: "2024-01-15T10:30:00Z"
+                      updated_at: "2024-01-15T10:30:00Z"
+        '400':
+          $ref: '#/components/responses/V2BadRequest'
+        '401':
+          $ref: '#/components/responses/V2Unauthorized'
+        '413':
+          $ref: '#/components/responses/V2PayloadTooLarge'
+        '422':
+          $ref: '#/components/responses/V2ValidationError'
+        '429':
+          $ref: '#/components/responses/V2RateLimitExceeded'
+        '500':
+          $ref: '#/components/responses/V2InternalServerError'
+
+  /v2/audio/transcriptions/{id}:
+    get:
+      summary: Get transcription
+      description: |
+        Retrieve a transcription by ID. Returns the current status and results if processing is complete.
+        
+        The transcription result includes:
+        - Full transcript text
+        - Word-level timestamps
+        - Speaker diarization (when multiple speakers detected)
+        - Confidence scores
+      operationId: getV2Transcription
+      tags:
+        - V2 Transcriptions
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Transcription ID
+          schema:
+            type: string
+            pattern: '^tr_[a-zA-Z0-9]+$'
+            example: "tr_abc123def456"
+      responses:
+        '200':
+          description: Transcription retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V2TranscriptionResponse'
+              examples:
+                pending_transcription:
+                  summary: Transcription still processing
+                  value:
+                    data:
+                      id: "tr_abc123def456"
+                      status: "processing"
+                      created_at: "2024-01-15T10:30:00Z"
+                      updated_at: "2024-01-15T10:30:15Z"
+                completed_transcription:
+                  summary: Completed transcription with results
+                  value:
+                    data:
+                      id: "tr_abc123def456"
+                      status: "completed"
+                      result:
+                        channels:
+                          - transcript: "Hello, this is a test transcription with multiple speakers."
+                            confidence: 0.95
+                            words:
+                              - word: "Hello"
+                                start: 0.0
+                                end: 0.5
+                                confidence: 0.98
+                                speaker: 0
+                              - word: "this"
+                                start: 0.6
+                                end: 0.8
+                                confidence: 0.97
+                                speaker: 0
+                              - word: "is"
+                                start: 0.9
+                                end: 1.0
+                                confidence: 0.96
+                                speaker: 0
+                      created_at: "2024-01-15T10:30:00Z"
+                      updated_at: "2024-01-15T10:32:30Z"
+                failed_transcription:
+                  summary: Failed transcription
+                  value:
+                    data:
+                      id: "tr_abc123def456"
+                      status: "failed"
+                      result:
+                        error: "Error processing transcription"
+                      created_at: "2024-01-15T10:30:00Z"
+                      updated_at: "2024-01-15T10:31:45Z"
+        '400':
+          $ref: '#/components/responses/V2BadRequest'
+        '401':
+          $ref: '#/components/responses/V2Unauthorized'
+        '404':
+          $ref: '#/components/responses/V2NotFound'
+        '429':
+          $ref: '#/components/responses/V2RateLimitExceeded'
+        '500':
+          $ref: '#/components/responses/V2InternalServerError'
+
+    delete:
+      summary: Delete V2 transcription
+      description: Delete a transcription. This action is irreversible.
+      operationId: deleteV2Transcription
+      tags:
+        - V2 Transcriptions
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Transcription ID
+          schema:
+            type: string
+            pattern: '^tr_[a-zA-Z0-9]+$'
+            example: "tr_abc123def456"
+      responses:
+        '204':
+          description: Transcription deleted successfully
+        '400':
+          $ref: '#/components/responses/V2BadRequest'
+        '401':
+          $ref: '#/components/responses/V2Unauthorized'
+        '404':
+          $ref: '#/components/responses/V2NotFound'
+        '429':
+          $ref: '#/components/responses/V2RateLimitExceeded'
+        '500':
+          $ref: '#/components/responses/V2InternalServerError'
 
   /v1/utils/text-to-json:
     post:
@@ -1516,6 +1765,262 @@ components:
               description: The original text with all detected macros expanded
               example: "The patient is a 54-year-old male here for a routine follow-up. Reports feeling well overall. General: Patient appears well-nourished and in no acute distress. HEENT: Normocephalic, atraumatic. Heart: Regular rate and rhythm. Lungs: Clear to auscultation bilaterally.. Denies any new symptoms. Medications reviewed and no changes needed. No signs of infection. Plan: Continue current medications. Reassess in 6 months or as needed. Patient advised to follow up for any new or worsening symptoms. applies. Discussed flu vaccine and colonoscopy timeline. Return visit scheduled in six months."
 
+    # V2 Transcription Schemas
+    V2LanguageCode:
+      type: string
+      enum:
+        - en
+        - en-US
+        - es
+        - de
+        - fr
+        - hi
+        - it
+        - ja
+        - nl
+        - pt
+        - ru
+        - bg
+        - ca
+        - zh
+        - zh-CN
+        - zh-Hans
+        - zh-TW
+        - zh-Hant
+        - zh-HK
+        - cs
+        - da
+        - da-DK
+        - en-AU
+        - en-GB
+        - en-NZ
+        - en-IN
+        - et
+        - fi
+        - nl-BE
+        - fr-CA
+        - de-CH
+        - el
+        - hu
+        - id
+        - ko
+        - ko-KR
+        - lv
+        - lt
+        - ms
+        - no
+        - pl
+        - pt-BR
+        - pt-PT
+        - ro
+        - sk
+        - es-419
+        - sv
+        - sv-SE
+        - th
+        - th-TH
+        - tr
+        - uk
+        - vi
+      default: en
+      description: Language code for the audio content. Different models are used based on language
+      example: en
+
+    V2AudioEncoding:
+      type: string
+      enum:
+        - linear16
+        - flac
+        - mulaw
+        - amr
+        - amr_wb
+        - ogg_opus
+        - speex
+        - webm_opus
+      description: |
+        Audio encoding format. Optional - if not specified, the API will auto-detect.
+        Common formats:
+        - `linear16`: 16-bit linear PCM
+        - `flac`: Free Lossless Audio Codec
+        - `mulaw`: μ-law encoding
+        - `ogg_opus`: Opus codec in OGG container
+        - `webm_opus`: Opus codec in WebM container
+      example: linear16
+
+    V2TranscriptionStatus:
+      type: string
+      enum:
+        - pending
+        - processing
+        - completed
+        - failed
+      description: |
+        Current status of the transcription:
+        - `pending`: Transcription has been queued but not started
+        - `processing`: Transcription is currently being processed
+        - `completed`: Transcription completed successfully
+        - `failed`: Transcription failed due to an error
+
+    V2TranscriptionWord:
+      type: object
+      properties:
+        word:
+          type: string
+          description: The transcribed word
+          example: "Hello"
+        start:
+          type: number
+          format: float
+          description: Start time in seconds
+          example: 0.0
+        end:
+          type: number
+          format: float
+          description: End time in seconds
+          example: 0.5
+        confidence:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Confidence score for this word
+          example: 0.98
+        speaker:
+          type: integer
+          description: Speaker ID (when diarization is enabled)
+          example: 0
+      required:
+        - word
+        - start
+        - end
+        - confidence
+
+    V2TranscriptionChannel:
+      type: object
+      properties:
+        transcript:
+          type: string
+          description: Full transcript text for this channel
+          example: "Hello, this is a test transcription with multiple speakers."
+        confidence:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Overall confidence score for this channel
+          example: 0.95
+        words:
+          type: array
+          items:
+            $ref: '#/components/schemas/V2TranscriptionWord'
+          description: Word-level timestamps and confidence scores
+      required:
+        - transcript
+        - confidence
+
+    V2TranscriptionResult:
+      type: object
+      properties:
+        channels:
+          type: array
+          items:
+            $ref: '#/components/schemas/V2TranscriptionChannel'
+          description: Transcription results per audio channel
+        error:
+          type: string
+          description: Error message if transcription failed
+          example: "Error processing transcription"
+      description: |
+        Transcription results. Contains either successful transcription data or error information.
+
+    V2Transcription:
+      type: object
+      properties:
+        id:
+          type: string
+          pattern: '^tr_[a-zA-Z0-9]+$'
+          description: Unique transcription identifier
+          example: "tr_abc123def456"
+        status:
+          $ref: '#/components/schemas/V2TranscriptionStatus'
+        result:
+          $ref: '#/components/schemas/V2TranscriptionResult'
+        created_at:
+          type: string
+          format: date-time
+          description: When the transcription was created
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: When the transcription was last updated
+          example: "2024-01-15T10:32:30Z"
+      required:
+        - id
+        - status
+        - created_at
+        - updated_at
+
+    V2TranscriptionResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/V2Transcription'
+      required:
+        - data
+
+    V2Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "Invalid request data"
+        details:
+          type: object
+          description: Additional error details (for validation errors)
+          additionalProperties: true
+      required:
+        - error
+
+    V2ValidationError:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "Invalid request data"
+        details:
+          type: object
+          description: Field-specific validation errors
+          additionalProperties:
+            type: string
+          example:
+            language: "Invalid language code. Must be one of: en, es, de, fr, hi, it, ja, nl, pt, ru, ..."
+            encoding: "Invalid encoding format"
+      required:
+        - error
+
+    V2RateLimitError:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              enum:
+                - RATE_LIMIT_EXCEEDED
+              example: "RATE_LIMIT_EXCEEDED"
+            message:
+              type: string
+              example: "Rate limit exceeded"
+          required:
+            - code
+            - message
+      required:
+        - error
+
   securitySchemes:
     apiKeyAuth:
       type: apiKey
@@ -1525,3 +2030,116 @@ components:
       type: apiKey
       in: header
       name: X-ACCOUNT-ID
+
+  responses:
+    # V2 Transcription Responses
+    V2BadRequest:
+      description: Bad request - invalid input
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/V2Error'
+          examples:
+            missing_file:
+              summary: Missing audio file
+              value:
+                error: "No audio file provided"
+            invalid_file_type:
+              summary: Unsupported file type
+              value:
+                error: "Unsupported file type: text/plain"
+
+    V2Unauthorized:
+      description: Unauthorized - missing or invalid API key
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/V2Error'
+          examples:
+            missing_credentials:
+              summary: Missing API credentials
+              value:
+                error: "Missing API key or Account ID"
+            invalid_api_key:
+              summary: Invalid API key
+              value:
+                error: "Invalid API key"
+
+    V2NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/V2Error'
+          examples:
+            transcription_not_found:
+              summary: Transcription not found
+              value:
+                error: "Transcription not found"
+
+    V2ValidationError:
+      description: Validation error - invalid request data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/V2ValidationError'
+          examples:
+            language_validation:
+              summary: Invalid language code
+              value:
+                error: "Invalid request data"
+                details:
+                  language: "Invalid language code. Must be one of: en, es, de, fr, hi, it, ja, nl, pt, ru, bg, ca, zh, zh-CN, zh-Hans, zh-TW, zh-Hant, zh-HK, cs, da, da-DK, en-AU, en-GB, en-NZ, en-IN, et, fi, nl-BE, fr-CA, de-CH, el, hu, id, ko, ko-KR, lv, lt, ms, no, pl, pt-BR, pt-PT, ro, sk, es-419, sv, sv-SE, th, th-TH, tr, uk, vi"
+
+    V2PayloadTooLarge:
+      description: File too large
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/V2Error'
+          examples:
+            file_too_large:
+              summary: File exceeds size limit
+              value:
+                error: "File too large"
+
+    V2RateLimitExceeded:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          description: Maximum requests allowed
+          schema:
+            type: integer
+            example: 100
+        X-RateLimit-Remaining:
+          description: Remaining requests in current window
+          schema:
+            type: integer
+            example: 0
+        X-RateLimit-Reset:
+          description: When the rate limit resets
+          schema:
+            type: string
+            format: date-time
+            example: "2024-01-15T11:00:00Z"
+        Retry-After:
+          description: Seconds to wait before retrying
+          schema:
+            type: integer
+            example: 60
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/V2RateLimitError'
+
+    V2InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/V2Error'
+          examples:
+            server_error:
+              summary: Generic server error
+              value:
+                error: "Internal Server Error"
