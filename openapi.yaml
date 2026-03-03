@@ -1628,36 +1628,50 @@ components:
           example: Patient is a 45-year-old male presenting with chest pain...
         schema:
           type: object
-          description: JSON Schema for transforming text into structured data
+          description: >-
+            JSON Schema defining the structure to extract from the text. Use `description`
+            fields on properties to guide the model — they act as extraction instructions
+            (e.g. "only include confirmed diagnoses, not suspected ones").
           example:
             type: object
+            description: "Structured clinical summary extracted from a patient encounter note"
             properties:
               patientInfo:
                 type: object
+                description: "Demographic details about the patient mentioned in the note"
                 properties:
                   age:
                     type: number
+                    description: "Patient age in years as a number, e.g. 45"
                   gender:
                     type: string
+                    description: "Patient gender as stated or implied in the note"
                   allergies:
                     type: ["array", "null"]
+                    description: "List of documented allergies; null if none mentioned"
                     items:
                       type: string
+                      description: "A single allergy (drug, food, or environmental)"
                 required: [age, gender, allergies]
               symptoms:
                 type: array
+                description: "Active symptoms the patient is currently experiencing or reporting"
                 items:
                   type: string
+                  description: "A single symptom in plain language, e.g. 'chest pain'"
               diagnosis:
                 type: array
+                description: "Only confirmed diagnoses — do not include suspected or rule-out conditions"
                 items:
                   type: string
+                  description: "A single confirmed diagnosis"
               severityLevel:
                 type: string
+                description: "Overall clinical severity based on the presenting condition and vitals"
                 enum: ["mild", "moderate", "severe", "critical"]
               notes:
                 type: ["string", "null"]
-                description: "Optional clinical notes that might be null"
+                description: "Additional clinical notes, provider observations, or contextual information not captured elsewhere"
             required: [patientInfo, symptoms, diagnosis, severityLevel, notes]
 
     TextToJsonResponse:
