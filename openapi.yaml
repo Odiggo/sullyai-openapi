@@ -38,10 +38,10 @@ info:
     
     ### Language Support
     
-    The API supports multiple languages with different models:
-    - **Nova-3 Medical**: English (en, en-US) - Optimized for medical terminology
-    - **Nova-3 General**: Spanish (es), German (de), French (fr), Hindi (hi), Italian (it), Japanese (ja), Dutch (nl), Portuguese (pt), Russian (ru)
-    - **Nova-2 General**: Additional languages including Chinese, Korean, and many others
+    The API supports multiple languages, including:
+    - English (en, en-US) with medical-optimized transcription
+    - Spanish (es), German (de), French (fr), Hindi (hi), Italian (it), Japanese (ja), Dutch (nl), Portuguese (pt), and Russian (ru)
+    - Additional support for languages including Chinese, Korean, and others
     
     ### Processing
     
@@ -50,6 +50,12 @@ info:
     2. Processing happens in the background
     3. Status updates to `processing`, then `completed` or `failed`
     4. Webhook notifications are sent when processing completes (if configured)
+
+    ### Dictation
+
+    V2 transcriptions support an optional `dictation` boolean field.
+    When enabled, the transcript is formatted for dictation-style output.
+    The default is `false`.
   version: "0.2.0"
 servers:
   - url: https://api.sully.ai
@@ -76,6 +82,7 @@ tags:
       - Speaker diarization (identifying different speakers)
       - Word-level timestamps and confidence scores
       - Automatic audio format conversion
+      - Optional dictation-oriented transcript formatting
       - Asynchronous processing with webhook notifications
   - name: Utilities
     description: Utility operations for transforming and processing medical data
@@ -281,7 +288,11 @@ paths:
         - Audio Transcriptions
       summary: Create a streaming transcription token
       operationId: createStreamingTranscriptionToken
-      description: Create a temporary authentication token for Streaming Speech-to-Text
+      description: |
+        Create a temporary authentication token for real-time speech-to-text streaming.
+
+        Use this token when connecting to `/v1/audio/transcriptions/stream`.
+        The websocket connection accepts an optional `dictation=true|false` query parameter.
       requestBody:
         content:
           application/json:
@@ -347,6 +358,10 @@ paths:
                   type: boolean
                   default: false
                   description: Enable multichannel audio processing
+                dictation:
+                  type: boolean
+                  default: false
+                  description: Enable dictation-oriented transcript formatting. When sent as multipart form-data, provide `true` or `false`.
             examples:
               basic_transcription:
                 summary: Basic English transcription
@@ -359,6 +374,12 @@ paths:
                   language: es
                   encoding: linear16
                   multichannel: false
+              dictation_transcription:
+                summary: English transcription with dictation formatting
+                value:
+                  language: en
+                  multichannel: false
+                  dictation: true
       responses:
         '201':
           description: Transcription created successfully
