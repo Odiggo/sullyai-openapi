@@ -734,6 +734,7 @@ components:
       type: object
       required:
         - transcript
+        - noteType
       properties:
         transcript:
           type: string
