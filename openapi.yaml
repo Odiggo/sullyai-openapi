@@ -755,8 +755,9 @@ components:
           enum: ['en', 'es', 'fr', 'de', 'it', 'pt', 'ru', 'zh']
           default: 'en'
           description: >-
-            Language code for the transcript content. While multiple languages are supported, 
-            English ('en') is recommended for optimal output quality and accuracy.
+            Language code for the generated note output. This setting is independent of the
+            transcript's language and defaults to English ('en'). Transcription locale tags such
+            as 'es-419' and the multilingual value 'multi' are not accepted.
           example: 'en'
         noteType:
           type: object
