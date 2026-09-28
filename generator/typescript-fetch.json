@@ -1,9 +1,0 @@
-{
-  "npmName": "sully-openapi-smoke",
-  "npmVersion": "0.0.0",
-  "supportsES6": true,
-  "useSingleRequestParameter": true,
-  "disallowAdditionalPropertiesIfNotPresent": false,
-  "legacyDiscriminatorBehavior": false,
-  "modelPropertyNaming": "original"
-}

@@ -1,7 +1,0 @@
-{
-  "packageName": "sully_openapi_smoke",
-  "projectName": "sully-openapi-smoke",
-  "packageVersion": "0.0.0",
-  "library": "urllib3",
-  "disallowAdditionalPropertiesIfNotPresent": false
-}
