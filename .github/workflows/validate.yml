@@ -14,6 +14,21 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # The main ruleset requires GitHub Actions' existing `build` check name.
+  # Keep that context, but require all replacement validation jobs to pass.
+  build:
+    runs-on: ubuntu-latest
+    needs: [contract, sdk-smoke]
+    if: ${{ always() }}
+    steps:
+      - name: Require successful contract and SDK checks
+        env:
+          CONTRACT_RESULT: ${{ needs.contract.result }}
+          SDK_RESULT: ${{ needs.sdk-smoke.result }}
+        run: |
+          test "$CONTRACT_RESULT" = success
+          test "$SDK_RESULT" = success
+
   contract:
     runs-on: ubuntu-latest
     steps:

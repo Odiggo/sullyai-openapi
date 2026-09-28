@@ -48,9 +48,10 @@ old spec checksum; it cannot suppress findings once that base changes. Review ch
 in the manifest together with the migration/version decision, never as a blanket bypass.
 
 The retired Stainless workflow has been removed: the organization has migrated to
-`stlc`, and its hosted builds return HTTP 401. The required checks for `main` are now
-`contract`, `sdk-smoke (typescript)`, and `sdk-smoke (python)` from this repository's
-validation workflow. Cross-repository dispatch and SDK publishing are separate work.
+`stlc`, and its hosted builds return HTTP 401. The existing required `build` check for
+`main` now aggregates `contract`, `sdk-smoke (typescript)`, and `sdk-smoke (python)`
+from this repository's validation workflow. It fails if any dependency fails, is
+cancelled, or is skipped. Cross-repository dispatch and SDK publishing are separate work.
 
 ## Generator notes
 
