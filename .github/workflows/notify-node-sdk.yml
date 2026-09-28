@@ -15,20 +15,20 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Explain manual SDK updates when App is not configured
-        if: vars.SDK_APP_ID == ''
-        run: echo 'SDK_APP_ID is absent; no cross-repository dispatch was sent. Run Update SDK from OpenAPI manually in sullyai-node Actions on main.' >> "$GITHUB_STEP_SUMMARY"
+        if: vars.SDK_APP_CLIENT_ID == ''
+        run: echo 'SDK_APP_CLIENT_ID is absent; no cross-repository dispatch was sent. Run Update SDK from OpenAPI manually in sullyai-node Actions on main.' >> "$GITHUB_STEP_SUMMARY"
       - name: Create installation token for Node repository only
-        if: vars.SDK_APP_ID != ''
+        if: vars.SDK_APP_CLIENT_ID != ''
         id: app
         uses: actions/create-github-app-token@v3
         with:
-          app-id: ${{ vars.SDK_APP_ID }}
+          client-id: ${{ vars.SDK_APP_CLIENT_ID }}
           private-key: ${{ secrets.SDK_APP_PRIVATE_KEY }}
           owner: Odiggo
           repositories: sullyai-node
           permission-contents: write
       - name: Dispatch exact merged source SHA
-        if: vars.SDK_APP_ID != ''
+        if: vars.SDK_APP_CLIENT_ID != ''
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
           SPEC_SHA: ${{ github.sha }}
