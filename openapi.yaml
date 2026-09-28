@@ -34,7 +34,7 @@ info:
     - AAC (audio/aac)
     - Opus (audio/opus)
     
-    Maximum file size: 100MB
+    Maximum file size: 100 MiB (104857600 bytes)
     
     ### Language Support
     
@@ -56,7 +56,7 @@ info:
     V2 transcriptions support an optional `dictation` boolean field.
     When enabled, the transcript is formatted for dictation-style output.
     The default is `false`.
-  version: "0.2.0"
+  version: "0.3.0"
 servers:
   - url: https://api.sully.ai
     description: Sully Production API
@@ -66,89 +66,121 @@ security:
   - apiKeyAuth: []
     accountIdAuth: []
 tags:
-  - name: Notes
-    description: Operations for creating and managing clinical notes from medical encounters
-  - name: Note Styles
-    description: Operations for managing templates and formatting styles for clinical notes
-  - name: Audio Transcriptions
-    description: Operations for converting medical audio to text, including streaming capability
-  - name: V2 Transcriptions
-    description: |
-      V2 Audio transcription operations with enhanced features
-      
-      The V2 Transcriptions API allows you to convert audio files to text using advanced AI models.
-      Features include:
-      - Multi-language support with specialized medical models
-      - Speaker diarization (identifying different speakers)
-      - Word-level timestamps and confidence scores
-      - Automatic audio format conversion
-      - Optional dictation-oriented transcript formatting
-      - Asynchronous processing with webhook notifications
-  - name: Utilities
-    description: Utility operations for transforming and processing medical data
-  - name: Codings
-    description: Operations for medical coding analysis including ICD-10 and CPT code extraction
-  - name: Macros
-    description: Operations for detecting and expanding text macros in medical documentation
+- name: Notes
+  description: Operations for creating and managing clinical notes from medical encounters
+- name: Note Styles
+  description: Operations for managing templates and formatting styles for clinical notes
+- name: Audio Transcriptions
+  description: Operations for converting medical audio to text, including streaming capability
+- name: V2 Transcriptions
+  description: 'V2 Audio transcription operations with enhanced features
+
+
+    The V2 Transcriptions API allows you to convert audio files to text using advanced AI models.
+
+    Features include:
+
+    - Multi-language support with specialized medical models
+
+    - Speaker diarization (identifying different speakers)
+
+    - Word-level timestamps and confidence scores
+
+    - Automatic audio format conversion
+
+    - Optional dictation-oriented transcript formatting
+
+    - Asynchronous processing with webhook notifications
+
+    '
+- name: Utilities
+  description: Utility operations for transforming and processing medical data
+- name: Codings
+  description: Operations for medical coding analysis including ICD-10 and CPT code extraction
+- name: Macros
+  description: Operations for detecting and expanding text macros in medical documentation
+- name: Notes V2
+  description: Asynchronous note generation (accept, then poll)
+- name: Notes V3
+  description: Synchronous note generation (note returned in the response)
+- name: OpenAI Compatible
+  description: OpenAI-compatible chat completions and model aliases
 paths:
   /v1/notes/{noteId}:
     get:
       tags:
-        - Notes
+      - Notes
       summary: Get a single note by ID
       operationId: getNoteById
       description: Gets a single note based on the ID supplied
       parameters:
-        - name: noteId
-          in: path
-          description: ID of note to get
-          required: true
-          schema:
-            type: string
+      - name: noteId
+        in: path
+        description: ID of note to get
+        required: true
+        schema:
+          type: string
       responses:
-        "200":
+        '200':
           description: Note response
           content:
             application/json:
               schema:
                 type: object
-                $ref: "#/components/schemas/GetNoteResponse"
-        "400":
+                $ref: '#/components/schemas/GetNoteResponse'
+        '400':
           description: Unexpected error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        default:
+          description: Request or service error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
     delete:
       tags:
-        - Notes
+      - Notes
       summary: Delete a note by ID
       operationId: deleteNoteById
       description: Deletes a single note based on the ID supplied
       parameters:
-        - name: noteId
-          in: path
-          description: ID of note to delete
-          required: true
-          schema:
-            type: string
+      - name: noteId
+        in: path
+        description: ID of note to delete
+        required: true
+        schema:
+          type: string
       responses:
-        "200":
+        '200':
           description: Note deleted
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/DeleteResponse"
-        "400":
+                $ref: '#/components/schemas/DeleteResponse'
+        '400':
           description: unexpected error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        default:
+          description: Request or service error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /v1/notes:
     post:
       tags:
-        - Notes
+      - Notes
       summary: Create a new clinical note
       operationId: createNote
       description: Creates a new note
@@ -157,26 +189,34 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateNotePayload"
+              $ref: '#/components/schemas/CreateNotePayload'
         required: true
       responses:
-        "200":
+        '200':
           description: Note response
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CreateNoteResponse"
-        "400":
+                $ref: '#/components/schemas/CreateNoteResponse'
+        '400':
           description: unexpected error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        default:
+          description: Request or service error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /v1/note-styles:
     post:
       tags:
-        - Note Styles
+      - Note Styles
       summary: Create a new note style template
       operationId: createNoteStyle
       description: Creates a note style
@@ -185,201 +225,213 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateNoteStylePayload"
+              $ref: '#/components/schemas/CreateNoteStylePayload'
         required: true
       responses:
-        "200":
+        '200':
           description: Note style response
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CreateNoteStyleResponse"
-        "400":
+                $ref: '#/components/schemas/CreateNoteStyleResponse'
+        '400':
           description: unexpected error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        default:
+          description: Request or service error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /v1/audio/transcriptions/{transcriptionId}:
     get:
       tags:
-        - Audio Transcriptions
+      - Audio Transcriptions
       summary: Get a single audio transcription by ID
       operationId: getAudioTranscriptionById
       description: Gets a single audio transcription based on the ID supplied
       parameters:
-        - name: transcriptionId
-          in: path
-          description: ID of the transcription to retrieve
-          required: true
-          schema:
-            type: string
+      - name: transcriptionId
+        in: path
+        description: ID of the transcription to retrieve
+        required: true
+        schema:
+          type: string
       responses:
-        "200":
+        '200':
           description: Audio transcription response
           content:
             application/json:
               schema:
                 type: object
-                $ref: "#/components/schemas/GetAudioTranscriptionResponse"
-        "400":
+                $ref: '#/components/schemas/GetAudioTranscriptionResponse'
+        '400':
           description: Unexpected error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        default:
+          description: Request or service error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
     delete:
       tags:
-        - Audio Transcriptions
+      - Audio Transcriptions
       summary: Delete an audio transcription by ID
       operationId: deleteAudioTranscriptionById
       description: Deletes a single audio transcription based on the ID supplied
       parameters:
-        - name: transcriptionId
-          in: path
-          description: ID of audio transcription to delete
-          required: true
-          schema:
-            type: string
+      - name: transcriptionId
+        in: path
+        description: ID of audio transcription to delete
+        required: true
+        schema:
+          type: string
       responses:
-        "200":
+        '200':
           description: Audio transcription deleted
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/DeleteResponse"
-        "400":
+                $ref: '#/components/schemas/DeleteResponse'
+        '400':
           description: unexpected error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        default:
+          description: Request or service error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /v1/audio/transcriptions:
     post:
       tags:
-        - Audio Transcriptions
+      - Audio Transcriptions
       summary: Create a new audio transcription
       operationId: createAudioTranscription
       description: Creates a new audio transcription
       requestBody:
-        description: Audio transcription to add
+        description: 'Multipart upload: one audio file, at most 16 text fields (16 KiB each), and 17 parts
+          total. Boolean fields use the strings true or false on the wire.'
         content:
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/CreateAudioTranscriptionPayload"
+              $ref: '#/components/schemas/CreateAudioTranscriptionPayload'
+            encoding:
+              audio:
+                contentType: audio/wav, audio/wave, audio/x-wav, audio/mpeg, audio/mp3, audio/flac, audio/ogg,
+                  audio/webm, audio/mp4, audio/m4a, audio/aac, audio/opus
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAudioTranscriptionJsonPayload'
         required: true
       responses:
-        "200":
+        '200':
           description: Audio transcription response
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CreateAudioTranscriptionResponse"
-        "400":
+                $ref: '#/components/schemas/CreateAudioTranscriptionResponse'
+        '400':
           description: unexpected error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        default:
+          description: Request or service error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /v1/audio/transcriptions/stream/token:
     post:
       tags:
-        - Audio Transcriptions
+      - Audio Transcriptions
       summary: Create a streaming transcription token
       operationId: createStreamingTranscriptionToken
-      description: |
-        Create a temporary authentication token for real-time speech-to-text streaming.
+      description: 'Create a temporary authentication token for real-time speech-to-text streaming.
+
 
         Use this token when connecting to `/v1/audio/transcriptions/stream`.
+
         The websocket connection accepts an optional `dictation=true|false` query parameter.
+
+        '
       requestBody:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                expiresIn:
-                  type: integer
-                  description: Duration of the token in seconds
-                  example: 3600
-                  minimum: 60
-                  maximum: 604800
-              required:
-                - expiresIn
+              $ref: '#/components/schemas/CreateStreamingTranscriptionTokenPayload'
         required: true
       responses:
-        "200":
-          description: Audio transcription stream token
+        '200':
+          description: Streaming authentication token
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  token:
-                    type: string
-                    example: tok_EXAMPLE123456789
-        "400":
+                $ref: '#/components/schemas/CreateStreamingTranscriptionTokenResponse'
+        '400':
           description: unexpected error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        default:
+          description: Request or service error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /v2/audio/transcriptions:
     post:
       summary: Create transcription
-      description: |
-        Upload an audio file for transcription
-        
+      description: 'Upload an audio file for transcription
+
+
         Processing is asynchronous - the endpoint returns immediately with a `pending` status.
+
         Use the GET endpoint to check status and retrieve results.
+
+        '
       operationId: createV2Transcription
       tags:
-        - V2 Transcriptions
+      - V2 Transcriptions
       requestBody:
         required: true
         content:
           multipart/form-data:
             schema:
-              type: object
-              required:
-                - audio
-              properties:
-                audio:
-                  type: string
-                  format: binary
-                  description: Audio file to transcribe (max 100MB)
-                language:
-                  $ref: '#/components/schemas/V2LanguageCode'
-                encoding:
-                  $ref: '#/components/schemas/V2AudioEncoding'
-                multichannel:
-                  type: boolean
-                  default: false
-                  description: Enable multichannel audio processing
-                dictation:
-                  type: boolean
-                  default: false
-                  description: Enable dictation-oriented transcript formatting. When sent as multipart form-data, provide `true` or `false`.
-            examples:
-              basic_transcription:
-                summary: Basic English transcription
-                value:
-                  language: en
-                  multichannel: false
-              spanish_transcription:
-                summary: Spanish transcription with encoding
-                value:
-                  language: es
-                  encoding: linear16
-                  multichannel: false
-              dictation_transcription:
-                summary: English transcription with dictation formatting
-                value:
-                  language: en
-                  multichannel: false
-                  dictation: true
+              $ref: '#/components/schemas/CreateV2TranscriptionPayload'
+            encoding:
+              audio:
+                contentType: audio/wav, audio/wave, audio/x-wav, audio/mpeg, audio/mp3, audio/flac, audio/ogg,
+                  audio/webm, audio/mp4, audio/m4a, audio/aac, audio/opus
+        description: 'Multipart upload: one audio file, at most 16 text fields (16 KiB each), and 17 parts
+          total. Boolean fields use the strings true or false on the wire.'
       responses:
         '201':
           description: Transcription created successfully
@@ -392,10 +444,10 @@ paths:
                   summary: Newly created transcription
                   value:
                     data:
-                      id: "tr_abc123def456"
-                      status: "pending"
-                      created_at: "2024-01-15T10:30:00Z"
-                      updated_at: "2024-01-15T10:30:00Z"
+                      id: tr_abc123def456
+                      status: pending
+                      created_at: '2024-01-15T10:30:00Z'
+                      updated_at: '2024-01-15T10:30:00Z'
         '400':
           $ref: '#/components/responses/V2BadRequest'
         '401':
@@ -403,35 +455,76 @@ paths:
         '413':
           $ref: '#/components/responses/V2PayloadTooLarge'
         '422':
-          $ref: '#/components/responses/V2ValidationError'
+          description: Audio duration cannot be verified or exceeds the supported limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V2Error'
         '429':
           $ref: '#/components/responses/V2RateLimitExceeded'
         '500':
           $ref: '#/components/responses/V2InternalServerError'
+        default:
+          description: Request or service error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '402':
+          description: Insufficient credits
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V2Error'
+        '409':
+          description: Billing conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V2Error'
+        '503':
+          description: Setup, queue, or billing unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V2Error'
+          headers:
+            Retry-After:
+              description: Retry delay in seconds when supplied; does not make a POST idempotent.
+              schema:
+                type: integer
+                minimum: 0
 
   /v2/audio/transcriptions/{id}:
     get:
       summary: Get transcription
-      description: |
-        Retrieve a transcription by ID. Returns the current status and results if processing is complete.
-        
+      description: 'Retrieve a transcription by ID. Returns the current status and results if processing
+        is complete.
+
+
         The transcription result includes:
+
         - Full transcript text
+
         - Word-level timestamps
+
         - Speaker diarization (when multiple speakers detected)
+
         - Confidence scores
+
+        '
       operationId: getV2Transcription
       tags:
-        - V2 Transcriptions
+      - V2 Transcriptions
       parameters:
-        - name: id
-          in: path
-          required: true
-          description: Transcription ID
-          schema:
-            type: string
-            pattern: '^tr_[a-zA-Z0-9]+$'
-            example: "tr_abc123def456"
+      - name: id
+        in: path
+        required: true
+        description: Transcription ID
+        schema:
+          type: string
+          example: tr_abc123def456
+          minLength: 1
       responses:
         '200':
           description: Transcription retrieved successfully
@@ -444,48 +537,48 @@ paths:
                   summary: Transcription still processing
                   value:
                     data:
-                      id: "tr_abc123def456"
-                      status: "processing"
-                      created_at: "2024-01-15T10:30:00Z"
-                      updated_at: "2024-01-15T10:30:15Z"
+                      id: tr_abc123def456
+                      status: processing
+                      created_at: '2024-01-15T10:30:00Z'
+                      updated_at: '2024-01-15T10:30:15Z'
                 completed_transcription:
                   summary: Completed transcription with results
                   value:
                     data:
-                      id: "tr_abc123def456"
-                      status: "completed"
+                      id: tr_abc123def456
+                      status: completed
                       result:
                         channels:
-                          - transcript: "Hello, this is a test transcription with multiple speakers."
-                            confidence: 0.95
-                            words:
-                              - word: "Hello"
-                                start: 0.0
-                                end: 0.5
-                                confidence: 0.98
-                                speaker: 0
-                              - word: "this"
-                                start: 0.6
-                                end: 0.8
-                                confidence: 0.97
-                                speaker: 0
-                              - word: "is"
-                                start: 0.9
-                                end: 1.0
-                                confidence: 0.96
-                                speaker: 0
-                      created_at: "2024-01-15T10:30:00Z"
-                      updated_at: "2024-01-15T10:32:30Z"
+                        - transcript: Hello, this is a test transcription with multiple speakers.
+                          confidence: 0.95
+                          words:
+                          - word: Hello
+                            start: 0.0
+                            end: 0.5
+                            confidence: 0.98
+                            speaker: 0
+                          - word: this
+                            start: 0.6
+                            end: 0.8
+                            confidence: 0.97
+                            speaker: 0
+                          - word: is
+                            start: 0.9
+                            end: 1.0
+                            confidence: 0.96
+                            speaker: 0
+                      created_at: '2024-01-15T10:30:00Z'
+                      updated_at: '2024-01-15T10:32:30Z'
                 failed_transcription:
                   summary: Failed transcription
                   value:
                     data:
-                      id: "tr_abc123def456"
-                      status: "failed"
+                      id: tr_abc123def456
+                      status: failed
                       result:
-                        error: "Error processing transcription"
-                      created_at: "2024-01-15T10:30:00Z"
-                      updated_at: "2024-01-15T10:31:45Z"
+                        error: Error processing transcription
+                      created_at: '2024-01-15T10:30:00Z'
+                      updated_at: '2024-01-15T10:31:45Z'
         '400':
           $ref: '#/components/responses/V2BadRequest'
         '401':
@@ -496,22 +589,27 @@ paths:
           $ref: '#/components/responses/V2RateLimitExceeded'
         '500':
           $ref: '#/components/responses/V2InternalServerError'
-
+        default:
+          description: Request or service error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
     delete:
       summary: Delete V2 transcription
       description: Delete a transcription. This action is irreversible.
       operationId: deleteV2Transcription
       tags:
-        - V2 Transcriptions
+      - V2 Transcriptions
       parameters:
-        - name: id
-          in: path
-          required: true
-          description: Transcription ID
-          schema:
-            type: string
-            pattern: '^tr_[a-zA-Z0-9]+$'
-            example: "tr_abc123def456"
+      - name: id
+        in: path
+        required: true
+        description: Transcription ID
+        schema:
+          type: string
+          example: tr_abc123def456
+          minLength: 1
       responses:
         '204':
           description: Transcription deleted successfully
@@ -525,47 +623,60 @@ paths:
           $ref: '#/components/responses/V2RateLimitExceeded'
         '500':
           $ref: '#/components/responses/V2InternalServerError'
+        default:
+          description: Request or service error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /v1/utils/text-to-json:
     post:
       tags:
-        - Utilities
+      - Utilities
       summary: Transform unstructured text to structured JSON
       operationId: transformTextToJson
-      description: >-
-        Transforms unstructured text into structured JSON according to a provided schema.
-        This utility endpoint extracts specific data patterns from free-form content.
+      description: Transforms unstructured text into structured JSON according to a provided schema. This
+        utility endpoint extracts specific data patterns from free-form content.
       requestBody:
         description: Text and schema for transformation
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/TextToJsonPayload"
+              $ref: '#/components/schemas/TextToJsonPayload'
         required: true
       responses:
-        "200":
+        '200':
           description: JSON data extracted from text
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TextToJsonResponse"
-        "400":
+                $ref: '#/components/schemas/TextToJsonResponse'
+        '400':
           description: Invalid input or schema
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
-        "500":
+                $ref: '#/components/schemas/Error'
+        '500':
           description: Server-side processing error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        default:
+          description: Request or service error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /v1/codings:
     post:
       tags:
-        - Codings
+      - Codings
       summary: Create a new medical coding analysis
       operationId: createCodingAnalysis
       description: Creates a new coding analysis request from medical conversation text
@@ -574,90 +685,114 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateCodingPayload"
+              $ref: '#/components/schemas/CreateCodingPayload'
         required: true
       responses:
-        "200":
+        '200':
           description: Coding analysis request created
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CreateCodingResponse"
-        "400":
+                $ref: '#/components/schemas/CreateCodingResponse'
+        '400':
           description: Invalid input
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        default:
+          description: Request or service error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /v1/codings/{codingId}:
     get:
       tags:
-        - Codings
+      - Codings
       summary: Get a coding analysis by ID
       operationId: getCodingAnalysisById
       description: Retrieves a coding analysis result by ID
       parameters:
-        - name: codingId
-          in: path
-          description: ID of the coding analysis to retrieve
-          required: true
-          schema:
-            type: string
-            example: coding_EXAMPLE123456789
+      - name: codingId
+        in: path
+        description: ID of the coding analysis to retrieve
+        required: true
+        schema:
+          type: string
+          example: coding_EXAMPLE123456789
       responses:
-        "200":
+        '200':
           description: Coding analysis result
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GetCodingResponse"
-        "400":
+                $ref: '#/components/schemas/GetCodingResponse'
+        '400':
           description: Invalid request
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
-        "404":
+                $ref: '#/components/schemas/Error'
+        '404':
           description: Coding analysis not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        default:
+          description: Request or service error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
     delete:
       tags:
-        - Codings
+      - Codings
       summary: Delete a coding analysis by ID
       operationId: deleteCodingAnalysisById
       description: Deletes a coding analysis by ID
       parameters:
-        - name: codingId
-          in: path
-          description: ID of the coding analysis to delete
-          required: true
-          schema:
-            type: string
-            example: coding_EXAMPLE123456789
+      - name: codingId
+        in: path
+        description: ID of the coding analysis to delete
+        required: true
+        schema:
+          type: string
+          example: coding_EXAMPLE123456789
       responses:
-        "204":
+        '204':
           description: Coding analysis successfully deleted (No Content)
-        "400":
+        '400':
           description: Invalid request
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
-        "404":
+                $ref: '#/components/schemas/Error'
+        '404':
           description: Coding analysis not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        default:
+          description: Request or service error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /v1/macros/detect:
     post:
       tags:
-        - Macros
+      - Macros
       summary: Detect and expand text macros
       operationId: detectAndExpandMacros
       description: Detects macros in text and provides expanded text with the macros replaced by their expansions
@@ -666,21 +801,329 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/MacroDetectPayload"
+              $ref: '#/components/schemas/MacroDetectPayload'
         required: true
       responses:
-        "200":
+        '200':
           description: Macro detection result
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MacroDetectResponse"
-        "400":
+                $ref: '#/components/schemas/MacroDetectResponse'
+        '400':
           description: Invalid request
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        default:
+          description: Request or service error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v2/notes:
+    post:
+      tags:
+      - Notes V2
+      summary: Create a note asynchronously
+      operationId: createNoteV2
+      description: Validates the request, persists a processing note and returns its ID. Poll `GET /v2/notes/{noteId}`
+        until `STATUS_DONE` or `STATUS_ERROR`. Disabled accounts receive 404. One successfully generated
+        note is billed once; the request is not idempotent.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNoteV2Payload'
+      responses:
+        '200':
+          description: Note accepted for processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateNoteV2Response'
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+        default:
+          $ref: '#/components/responses/NoteV2ErrorResponse'
+        '401':
+          $ref: '#/components/responses/NoteV2Unauthorized'
+        '404':
+          $ref: '#/components/responses/NoteV2NotFound'
+        '500':
+          $ref: '#/components/responses/NoteV2InternalError'
+        '503':
+          $ref: '#/components/responses/NoteV2Unavailable'
+        '504':
+          $ref: '#/components/responses/NoteV2Timeout'
+        '400':
+          $ref: '#/components/responses/NoteV2BadRequest'
+        '402':
+          $ref: '#/components/responses/NoteV2InsufficientCredits'
+        '409':
+          $ref: '#/components/responses/NoteV2BillingConflict'
+        '422':
+          $ref: '#/components/responses/NoteV2UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/NoteV2RateLimited'
+        '502':
+          $ref: '#/components/responses/NoteV2GenerationFailed'
+
+  /v2/notes/{noteId}:
+    parameters:
+    - name: noteId
+      in: path
+      required: true
+      description: Note ID returned by `POST /v2/notes`
+      schema:
+        type: string
+        pattern: ^note_[A-Za-z0-9_-]+$
+        maxLength: 128
+    get:
+      tags:
+      - Notes V2
+      summary: Get an asynchronous note
+      operationId: getNoteV2
+      responses:
+        '200':
+          description: Note resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetNoteV2Response'
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+        default:
+          $ref: '#/components/responses/NoteV2ErrorResponse'
+        '401':
+          $ref: '#/components/responses/NoteV2Unauthorized'
+        '404':
+          $ref: '#/components/responses/NoteV2NotFound'
+        '500':
+          $ref: '#/components/responses/NoteV2InternalError'
+        '503':
+          $ref: '#/components/responses/NoteV2Unavailable'
+        '504':
+          $ref: '#/components/responses/NoteV2Timeout'
+    delete:
+      tags:
+      - Notes V2
+      summary: Delete an asynchronous note
+      operationId: deleteNoteV2
+      description: Deletes the note resource. Deleting a processing note prevents terminal persistence and
+        successful-note billing.
+      responses:
+        '200':
+          description: Note deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteNoteV2Response'
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+        default:
+          $ref: '#/components/responses/NoteV2ErrorResponse'
+        '401':
+          $ref: '#/components/responses/NoteV2Unauthorized'
+        '404':
+          $ref: '#/components/responses/NoteV2NotFound'
+        '500':
+          $ref: '#/components/responses/NoteV2InternalError'
+        '503':
+          $ref: '#/components/responses/NoteV2Unavailable'
+        '504':
+          $ref: '#/components/responses/NoteV2Timeout'
+
+  /v3/notes:
+    post:
+      tags:
+      - Notes V3
+      summary: Generate a note synchronously
+      operationId: createNoteV3
+      description: 'Generates a note and returns it in the response (up to 240 seconds). Nothing is stored:
+        there is no GET. Unknown fields and null values are rejected. Disabled accounts receive 404 `endpoint_disabled`.
+        A successful request is billed once and is not idempotent.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNoteV3Payload'
+      responses:
+        '200':
+          description: Generated note
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateNoteV3Response'
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+        default:
+          $ref: '#/components/responses/NoteV3ErrorResponse'
+        '400':
+          $ref: '#/components/responses/NoteV3BadRequest'
+        '401':
+          $ref: '#/components/responses/NoteV3Unauthorized'
+        '402':
+          $ref: '#/components/responses/NoteV3InsufficientCredits'
+        '404':
+          $ref: '#/components/responses/NoteV3NotFound'
+        '502':
+          $ref: '#/components/responses/NoteV3GenerationFailed'
+        '503':
+          $ref: '#/components/responses/NoteV3Unavailable'
+        '504':
+          $ref: '#/components/responses/NoteV3Timeout'
+
+  /openai/v1/chat/completions:
+    post:
+      tags:
+      - OpenAI Compatible
+      summary: Create a chat completion
+      operationId: createChatCompletion
+      description: 'OpenAI-compatible chat completions. `model` is a Sully alias; unknown values route to
+        the account default. With `stream: true` the response is a server-sent event stream of `chat.completion.chunk`
+        objects terminated by `data: [DONE]`. The body limit is 32 MiB and the request budget is 1200 seconds.
+        Streaming may include comment heartbeats and OpenAI error frames after HTTP 200. The stream then
+        ends with [DONE]; usage frames are opt-in and can contain null usage.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatCompletionCreateParams'
+      responses:
+        '200':
+          description: Chat completion, or an SSE stream when `stream` is true
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatCompletion'
+            text/event-stream:
+              schema:
+                type: string
+                description: 'SSE wire stream: data frames contain ChatCompletionChunk or OpenAIErrorResponse
+                  JSON, followed by data: [DONE].'
+              x-sse-event-schema:
+                oneOf:
+                - $ref: '#/components/schemas/ChatCompletionChunk'
+                - $ref: '#/components/schemas/OpenAIErrorResponse'
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+        default:
+          $ref: '#/components/responses/OpenAIErrorResponse'
+        '400':
+          $ref: '#/components/responses/OpenAIBadRequest'
+        '401':
+          $ref: '#/components/responses/OpenAIUnauthorized'
+        '404':
+          $ref: '#/components/responses/OpenAINotFound'
+        '500':
+          $ref: '#/components/responses/OpenAIInternalError'
+        '503':
+          $ref: '#/components/responses/OpenAIUnavailable'
+        '402':
+          $ref: '#/components/responses/OpenAIInsufficientCredits'
+        '409':
+          $ref: '#/components/responses/OpenAIBillingConflict'
+        '413':
+          $ref: '#/components/responses/OpenAIPayloadTooLarge'
+        '429':
+          $ref: '#/components/responses/OpenAIRateLimited'
+        '504':
+          $ref: '#/components/responses/OpenAITimeout'
+      security:
+      - apiKeyAuth: []
+        accountIdAuth: []
+      - compatCompositeBearerAuth: []
+      - compatBearerAuth: []
+        accountIdAuth: []
+
+  /openai/v1/models:
+    get:
+      tags:
+      - OpenAI Compatible
+      summary: List model aliases
+      operationId: listModels
+      responses:
+        '200':
+          description: Aliases available to the account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelList'
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+        default:
+          $ref: '#/components/responses/OpenAIErrorResponse'
+        '400':
+          $ref: '#/components/responses/OpenAIBadRequest'
+        '401':
+          $ref: '#/components/responses/OpenAIUnauthorized'
+        '404':
+          $ref: '#/components/responses/OpenAINotFound'
+        '500':
+          $ref: '#/components/responses/OpenAIInternalError'
+        '503':
+          $ref: '#/components/responses/OpenAIUnavailable'
+      security:
+      - apiKeyAuth: []
+        accountIdAuth: []
+      - compatCompositeBearerAuth: []
+      - compatBearerAuth: []
+        accountIdAuth: []
+
+  /openai/v1/models/{model}:
+    get:
+      tags:
+      - OpenAI Compatible
+      summary: Retrieve a model alias
+      operationId: retrieveModel
+      parameters:
+      - name: model
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Model alias
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Model'
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+        default:
+          $ref: '#/components/responses/OpenAIErrorResponse'
+        '400':
+          $ref: '#/components/responses/OpenAIBadRequest'
+        '401':
+          $ref: '#/components/responses/OpenAIUnauthorized'
+        '404':
+          $ref: '#/components/responses/OpenAINotFound'
+        '500':
+          $ref: '#/components/responses/OpenAIInternalError'
+        '503':
+          $ref: '#/components/responses/OpenAIUnavailable'
+      security:
+      - apiKeyAuth: []
+        accountIdAuth: []
+      - compatCompositeBearerAuth: []
+      - compatBearerAuth: []
+        accountIdAuth: []
 
 components:
   schemas:
@@ -733,32 +1176,39 @@ components:
     CreateNotePayload:
       type: object
       required:
-        - transcript
-        - noteType
+      - transcript
+      - noteType
       properties:
         transcript:
           type: string
           description: The raw medical transcript text to be processed into a clinical note
-          example: >-
-            Hey, how's it going? Good good yeah, so what's going on? Yeah, hi I'm
-            Edward yeah hi hi Edward. How's it going? Yeah, good good. So I've been
-            having a couple of issues like my back pain and knee pain.
+          example: Hey, how's it going? Good good yeah, so what's going on? Yeah, hi I'm Edward yeah hi hi
+            Edward. How's it going? Yeah, good good. So I've been having a couple of issues like my back pain
+            and knee pain.
+          minLength: 1
+          maxLength: 100000
         date:
           type: string
-          description: Date of the patient encounter in ISO format (YYYY-MM-DD) or ISO datetime format (YYYY-MM-DDTHH:mm:ssZ)
+          description: Optional encounter date string; ISO-8601 is recommended.
           examples:
-            date_only: "2024-11-07"
-            datetime: "2024-11-07T21:24:51Z"
-          pattern: '^(\d{4}-\d{2}-\d{2}|\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)$'
+          - '2026-09-07'
+          - '2026-09-07T12:00:00Z'
         language:
           type: string
-          enum: ['en', 'es', 'fr', 'de', 'it', 'pt', 'ru', 'zh']
-          default: 'en'
-          description: >-
-            Language code for the generated note output. This setting is independent of the
-            transcript's language and defaults to English ('en'). Transcription locale tags such
-            as 'es-419' and the multilingual value 'multi' are not accepted.
-          example: 'en'
+          enum:
+          - en
+          - es
+          - fr
+          - de
+          - it
+          - pt
+          - ru
+          - zh
+          default: en
+          description: Language code for the generated note output. This setting is independent of the transcript's
+            language and defaults to English ('en'). Transcription locale tags such as 'es-419' and the multilingual
+            value 'multi' are not accepted.
+          example: en
         noteType:
           type: object
           description: Configuration object specifying the style and format of the generated note
@@ -768,48 +1218,47 @@ components:
               description: A brief overview of the note.
             type:
               type: string
-              description: >-
-                Determines the type of note to generate.
+              description: 'Determines the type of note to generate.
 
                 - Use `note_style` to provide a note style string
 
                 - Use `note_template` to provide a [Note Template](/api-reference/schemas/note-template) payload
 
-                - Use `soap` for the default SOAP template
+                - Use `soap` for the default SOAP template'
               enum:
-                - soap
-                - note_style
-                - note_template
-              default: soap
+              - soap
+              - custom
+              - note_style
+              - note_template
               example: note_style
             template:
               oneOf:
-                - type: string
-                - type: object
-              description: >-
-                Custom template to generate the note. This is applicable only when `type` 
-                is set to `note_style` or `note_template`.
+              - type: string
+              - $ref: '#/components/schemas/NoteTemplate'
+              description: 'Custom template to generate the note. This is applicable only when `type`  is
+                set to `note_style` or `note_template`.
 
                 - When `type` is `note_style`, this is a note style string
 
-                - When `type` is `note_template`, this is a [Note Template](/api-reference/schemas/note-template) payload
-              example: >-
-                write a standard clinical SOAP note with the following sections:
-                - **Subjective**: Contains detailed HPI.
-                - **Objective**: Contains PE and ROS.
-                - **Assessment**: Contains differential diagnoses with corresponding plans.
-                - **Patient Instructions**: Contains a list of instructions for the patient.
+                - When `type` is `note_template`, this is a [Note Template](/api-reference/schemas/note-template)
+                payload'
+              example: 'write a standard clinical SOAP note with the following sections: - **Subjective**:
+                Contains detailed HPI. - **Objective**: Contains PE and ROS. - **Assessment**: Contains differential
+                diagnoses with corresponding plans. - **Patient Instructions**: Contains a list of instructions
+                for the patient.'
             includeJson:
               type: boolean
-              description: >-
-                Determines whether to include a JSON payload in the custom note output. 
-                This option is applicable only for custom notes and defaults to `false`. 
-                Enabling this will increase latency and payload size.
+              description: Determines whether to include a JSON payload in the custom note output.  This option
+                is applicable only for custom notes and defaults to `false`.  Enabling this will increase
+                latency and payload size.
               default: false
               example: true
-
+          required:
+          - type
         patientInfo:
-          type: object
+          type:
+          - object
+          - 'null'
           description: Optional patient information
           properties:
             name:
@@ -817,38 +1266,32 @@ components:
               description: Patient's full name
             dateOfBirth:
               type: string
-              format: date
               description: Patient's date of birth in ISO-8601 format (YYYY-MM-DD)
             gender:
               type: string
               description: Patient's gender identity
-              enum:
-                - male
-                - female
-                - other
-                - prefer not to say
-                - unspecified
         previousNote:
           type: string
           description: Reference to a previous note if this is a follow-up. This field is optional.
+          maxLength: 50000
         context:
           type: string
-          nullable: true
           description: Additional context for note generation. This field is optional.
+          maxLength: 50000
         instructions:
           type: array
           items:
             type: string
-          nullable: true
           description: Special instructions for note generation. This field is optional.
           example:
-            - "Use a professional and concise tone."
-            - "Include key details without unnecessary elaboration."
-            - "Ensure clarity for a general audience."
-
+          - Use a professional and concise tone.
+          - Include key details without unnecessary elaboration.
+          - Ensure clarity for a general audience.
         medicationList:
           type: string
-          description: List of up to 50 medications (comma separated) to use as reference for fixing spelling errors. This field is optional.
+          description: List of up to 50 medications (comma separated) to use as reference for fixing spelling
+            errors. This field is optional.
+          maxLength: 50000
 
     CreateNoteResponse:
       type: object
@@ -913,35 +1356,16 @@ components:
           example: ok
           description: Status of the response
         data:
-          type: object
-          properties:
-            id:
-              type: string
-              example: tr_EXAMPLE123456789
-              description: Unique identifier for the audio transcription
-            payload:
-              type: object
-              description: Either markdown or JSON representation of the note. Both can be present as well.
-              properties:
-                transcription:
-                  type: string
-                  description: Transcription of the audio
-            timestamp:
-              type: object
-              properties:
-                start:
-                  type: integer
-                  example: 1731014849730
-                  description: Start timestamp
-                complete:
-                  type: integer
-                  example: 1731014853958
-                  description: Complete timestamp
+          $ref: '#/components/schemas/AudioTranscriptionData'
         date:
           type: string
           format: date-time
-          example: 2024-11-07T21:27:39Z
+          example: '2024-11-07T21:27:39Z'
           description: Timestamp of the response
+      required:
+      - status
+      - data
+      - date
 
     CreateAudioTranscriptionPayload:
       type: object
@@ -949,49 +1373,33 @@ components:
         audio:
           type: string
           format: binary
-          description: >-
-            Audio file to transcribe (supported formats: wav, mp3, m4a, ogg)
+          description: One binary audio file, maximum 100 MiB (104857600 bytes). Send its actual supported
+            audio Content-Type; application/octet-stream is rejected.
         language:
           type: string
-          description: >-
-            Language code for transcription:
+          description: 'Language code for transcription:
 
-            - English (en-US, en-GB)
-            - Spanish (es)
-            - French (fr)
-            - German (de)
-            - Italian (it)
-            - Portuguese (pt)
-            - Dutch (nl)
-            - Japanese (ja)
-            - Korean (ko)
-            - Chinese (zh)
-            - Russian (ru)
+            - English (en-US, en-GB) - Spanish (es) - French (fr) - German (de) - Italian (it) - Portuguese
+            (pt) - Dutch (nl) - Japanese (ja) - Korean (ko) - Chinese (zh) - Russian (ru)'
           example: en-US
       required:
-        - audio
+      - audio
 
     CreateAudioTranscriptionResponse:
       type: object
       properties:
         status:
           type: string
-          example: "ok"
+          example: ok
         data:
-          type: object
-          properties:
-            transcriptionId:
-              type: string
-              description: "Unique identifier for the audio transcription request."
-              example: "tr_EXAMPLE123456789"
-            message:
-              type: string
-              description: "Informational message about the request status."
-              example: "Your transcription request has been received and is currently processing."
-            status:
-              type: string
-              description: "The processing status of the transcription request. Always 'pending'."
-              example: "pending"
+          $ref: '#/components/schemas/AudioTranscriptionAcceptedData'
+        date:
+          type: string
+          format: date-time
+      required:
+      - status
+      - data
+      - date
 
     DeleteResponse:
       type: object
@@ -1007,16 +1415,11 @@ components:
           description: Timestamp of the response
 
     Error:
-      required:
-        - error
-        - message
-      type: object
-      properties:
-        error:
-          type: integer
-          format: int32
-        message:
-          type: string
+      description: Legacy route error, shared middleware error, or credential failure.
+      anyOf:
+      - $ref: '#/components/schemas/ApiError'
+      - $ref: '#/components/schemas/AuthenticationError'
+      - $ref: '#/components/schemas/V2Error'
 
     SoapNote:
       type: object
@@ -1223,8 +1626,9 @@ components:
               began:
                 type: string
               ended:
-                type: string
-                nullable: true
+                type:
+                - string
+                - 'null'
         family_history:
           type: array
           items:
@@ -1239,8 +1643,9 @@ components:
               began:
                 type: string
               ended:
-                type: string
-                nullable: true
+                type:
+                - string
+                - 'null'
         social_history:
           type: object
           properties:
@@ -1288,8 +1693,14 @@ components:
           description: Unique identifier for the section.
         type:
           type: string
-          enum: [heading, text, list]
+          enum:
+          - heading
+          - text
+          - list
           description: Specifies the type of content in the section.
+      required:
+      - id
+      - type
 
     TextContentProperties:
       type: object
@@ -1306,120 +1717,125 @@ components:
           description: Whether to hide the content if it's empty.
         formatting_style:
           type: string
-          enum: [markdown, plain]
+          enum:
+          - markdown
+          - plain
           default: markdown
           description: Specifies the formatting style of the text.
         detail_level:
           type: string
-          enum: [exhaustive, detailed, standard, brief, minimal]
+          enum:
+          - exhaustive
+          - detailed
+          - standard
+          - brief
+          - minimal
           default: standard
           description: Determines the level of detail in the text content.
         tone:
           type: string
-          enum: [formal, casual, technical, friendly, instructional]
+          enum:
+          - formal
+          - casual
+          - technical
+          - friendly
+          - instructional
           default: formal
           description: Defines the tone of the generated text.
         emptyPlaceholder:
           type: string
           description: Placeholder text to display if content is empty.
+        hide_if_empty:
+          type: boolean
+        empty_placeholder:
+          type: string
 
     HeadingSection:
       allOf:
-        - $ref: "#/components/schemas/BaseSection"
+      - $ref: '#/components/schemas/BaseSection'
       description: Defines a heading section with properties and children.
       properties:
         type:
           type: string
-          enum: [heading]
-        level:
-          type: integer
-          minimum: 0
-          maximum: 6
-          description: Specifies the heading level (e.g., H1 to H6).
-        text:
-          type: string
-          description: The actual text of the heading.
+          enum:
+          - heading
         children:
           type: array
           items:
-            $ref: "#/components/schemas/Section"
+            $ref: '#/components/schemas/Section'
           description: Nested sections under the heading.
+        properties:
+          $ref: '#/components/schemas/HeadingSectionProperties'
+        result:
+          type: string
+      type: object
+      required:
+      - properties
+      - children
 
     TextSection:
       allOf:
-        - $ref: "#/components/schemas/BaseSection"
+      - $ref: '#/components/schemas/BaseSection'
       description: Defines a text section with properties and generated results.
       properties:
         type:
           type: string
-          enum: [text]
+          enum:
+          - text
         properties:
-          $ref: "#/components/schemas/TextContentProperties"
-        label:
-          type: string
-          description: An optional label for the text section.
-        bold_label:
-          type: boolean
-          description: Whether the label should be bold.
-        italic_label:
-          type: boolean
-          description: Whether the label should be italicized.
-        list_type:
-          type: string
-          enum: [bullet, numeric]
-          description: Defines whether text should be formatted as a bullet or numeric list.
-        min_sentences:
-          type: integer
-          description: Minimum number of sentences required.
-        max_sentences:
-          type: integer
-          description: Maximum number of sentences allowed.
-        min_paragraphs:
-          type: integer
-          description: Minimum number of paragraphs required.
-        max_paragraphs:
-          type: integer
-          description: Maximum number of paragraphs allowed.
+          $ref: '#/components/schemas/TextSectionProperties'
         result:
           type: string
           description: The generated text content.
+        prompt:
+          type: string
+          minLength: 1
+      type: object
+      required:
+      - prompt
+      - properties
 
     ListSection:
       allOf:
-        - $ref: "#/components/schemas/BaseSection"
+      - $ref: '#/components/schemas/BaseSection'
       description: Defines a list section with properties and generated list items.
       properties:
         type:
           type: string
-          enum: [list]
+          enum:
+          - list
         properties:
-          $ref: "#/components/schemas/TextContentProperties"
-        list_type:
-          type: string
-          enum: [bullet, numeric]
-          description: Defines whether the list is bulleted or numbered.
-        min_items:
-          type: integer
-          description: Minimum number of items required in the list.
-        max_items:
-          type: integer
-          description: Maximum number of items allowed in the list.
+          $ref: '#/components/schemas/ListSectionProperties'
         result:
           type: array
           items:
             type: string
           description: The generated list items.
+        prompt:
+          type: string
+          minLength: 1
+      type: object
+      required:
+      - prompt
+      - properties
 
     Section:
       oneOf:
-        - $ref: "#/components/schemas/HeadingSection"
-        - $ref: "#/components/schemas/TextSection"
-        - $ref: "#/components/schemas/ListSection"
+      - $ref: '#/components/schemas/HeadingSection'
+      - $ref: '#/components/schemas/TextSection'
+      - $ref: '#/components/schemas/ListSection'
       description: Union of different content section types.
+      discriminator:
+        propertyName: type
+        mapping:
+          heading: '#/components/schemas/HeadingSection'
+          text: '#/components/schemas/TextSection'
+          list: '#/components/schemas/ListSection'
 
     NoteTemplate:
       type: object
-      description: Defines the structure of a note template with validation for heading nesting depth.
+      description: Note template. Heading sections may be nested at most two levels deep; text and list sections
+        require a non-empty prompt.
       properties:
         id:
           type: string
@@ -1434,12 +1850,15 @@ components:
         sections:
           type: array
           items:
-            $ref: "#/components/schemas/Section"
+            $ref: '#/components/schemas/Section'
           description: List of sections included in the note template.
+        global_prompt:
+          type: string
+          description: Preferred alias of globalPrompt.
       required:
-        - id
-        - title
-        - sections
+      - id
+      - title
+      - sections
 
     CreateCodingPayload:
       type: object
@@ -1845,7 +2264,7 @@ components:
         - lv
         - lt
         - ms
-        - no
+        - 'no'
         - pl
         - pt-BR
         - pt-PT
@@ -1975,9 +2394,8 @@ components:
       properties:
         id:
           type: string
-          pattern: '^tr_[a-zA-Z0-9]+$'
           description: Unique transcription identifier
-          example: "tr_abc123def456"
+          example: tr_abc123def456
         status:
           $ref: '#/components/schemas/V2TranscriptionStatus'
         result:
@@ -1986,17 +2404,20 @@ components:
           type: string
           format: date-time
           description: When the transcription was created
-          example: "2024-01-15T10:30:00Z"
+          example: '2024-01-15T10:30:00Z'
         updated_at:
           type: string
           format: date-time
           description: When the transcription was last updated
-          example: "2024-01-15T10:32:30Z"
+          example: '2024-01-15T10:32:30Z'
+        error:
+          type: string
+          description: Sanitized failure summary when available.
       required:
-        - id
-        - status
-        - created_at
-        - updated_at
+      - id
+      - status
+      - created_at
+      - updated_at
 
     V2TranscriptionResponse:
       type: object
@@ -2058,50 +2479,1354 @@ components:
       required:
         - error
 
+    CreateNoteV2Payload:
+      type: object
+      required:
+      - transcript
+      - noteType
+      properties:
+        transcript:
+          type: string
+          minLength: 1
+          maxLength: 100000
+          description: Raw encounter transcript
+        noteType:
+          $ref: '#/components/schemas/NoteV2Type'
+        language:
+          type: string
+          enum:
+          - en
+          - es
+          - fr
+          - de
+          - it
+          - pt
+          - ru
+          - zh
+          default: en
+          description: Output language; independent of transcript language. Locale tags and multi are not
+            accepted.
+        patientInfo:
+          $ref: '#/components/schemas/NotePatientInfo'
+        context:
+          type: string
+          maxLength: 50000
+        previousNote:
+          type: string
+          maxLength: 50000
+        medicationList:
+          type: string
+          maxLength: 50000
+        instructions:
+          type: array
+          items:
+            type: string
+        date:
+          type: string
+          description: Encounter date, e.g. 2026-09-07
+
+    CreateNoteV2Response:
+      type: object
+      required:
+      - status
+      - data
+      - date
+      properties:
+        status:
+          type: string
+          example: ok
+          enum:
+          - ok
+        data:
+          $ref: '#/components/schemas/NoteAcceptedData'
+        date:
+          type: string
+          format: date-time
+
+    GetNoteV2Response:
+      type: object
+      required:
+      - status
+      - data
+      - date
+      properties:
+        status:
+          type: string
+          example: ok
+          enum:
+          - ok
+        data:
+          $ref: '#/components/schemas/NoteV2'
+        date:
+          type: string
+          format: date-time
+
+    DeleteNoteV2Response:
+      type: object
+      required:
+      - status
+      - data
+      - date
+      properties:
+        status:
+          type: string
+          example: ok
+          enum:
+          - ok
+        data:
+          $ref: '#/components/schemas/NoteDeletedData'
+        date:
+          type: string
+          format: date-time
+
+    NoteV2Error:
+      description: Domain errors use an envelope; authentication errors contain a top-level message.
+      anyOf:
+      - $ref: '#/components/schemas/ApiError'
+      - $ref: '#/components/schemas/AuthenticationError'
+
+    CreateNoteV3Payload:
+      type: object
+      additionalProperties: false
+      required:
+      - transcript
+      description: Provide at most one of `templateId` and `template`.
+      properties:
+        transcript:
+          type: string
+          minLength: 1
+          maxLength: 100000
+          pattern: \S
+        templateId:
+          type: string
+          minLength: 1
+          maxLength: 256
+          description: Trimmed non-empty stored template ID, at most 256 characters after trimming. Mutually
+            exclusive with template.
+        template:
+          $ref: '#/components/schemas/NoteV3Template'
+        clinicalContext:
+          $ref: '#/components/schemas/NoteV3ClinicalContext'
+      not:
+        required:
+        - templateId
+        - template
+
+    NoteV3Template:
+      type: object
+      additionalProperties: false
+      required:
+      - sections
+      properties:
+        instructions:
+          type: string
+          maxLength: 10000
+          description: Global instructions
+        sections:
+          type: array
+          minItems: 1
+          maxItems: 50
+          description: Section titles must be unique
+          items:
+            $ref: '#/components/schemas/NoteV3TemplateSection'
+
+    NoteV3ClinicalContext:
+      type: object
+      additionalProperties: false
+      description: All strings in template + clinicalContext combined must not exceed 100000 characters.
+      properties:
+        patient:
+          $ref: '#/components/schemas/NoteV3Patient'
+        medications:
+          type: array
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/NoteV3Medication'
+        pastVisits:
+          type: array
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/NoteV3PastVisit'
+        contextItems:
+          type: array
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/NoteV3ContextItem'
+
+    CreateNoteV3Response:
+      type: object
+      required:
+      - requestId
+      - note
+      properties:
+        requestId:
+          type: string
+          description: Equals the `X-Request-Id` response header
+        note:
+          type: string
+          description: Generated note text
+        usage:
+          $ref: '#/components/schemas/NoteV3Usage'
+
+    NoteV3Error:
+      type: object
+      required:
+      - code
+      - message
+      - requestId
+      properties:
+        code:
+          type: string
+          enum:
+          - invalid_request
+          - unauthorized
+          - endpoint_disabled
+          - insufficient_credits
+          - generation_failed
+          - invalid_generation_response
+          - generation_unavailable
+          - billing_unavailable
+          - generation_timeout
+        message:
+          type: string
+        requestId:
+          type: string
+
+    ChatCompletionCreateParams:
+      type: object
+      required:
+      - messages
+      additionalProperties: true
+      properties:
+        messages:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ChatCompletionMessageParam'
+        model:
+          type: string
+          description: Sully model alias. Unknown or omitted values use the account default alias.
+        stream:
+          type: boolean
+          default: false
+        stream_options:
+          $ref: '#/components/schemas/ChatCompletionStreamOptions'
+        max_completion_tokens:
+          type: integer
+          description: Clamped to the supported account/provider range.
+        max_tokens:
+          type: integer
+          deprecated: true
+          description: Clamped to the supported account/provider range.
+        temperature:
+          type: number
+          description: Clamped to the supported account/provider range.
+        top_p:
+          type: number
+          description: Clamped to the supported account/provider range.
+        seed:
+          type: integer
+        stop:
+          oneOf:
+          - type: string
+          - type: array
+            items:
+              type: string
+        tools:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatCompletionTool'
+        tool_choice:
+          oneOf:
+          - type: string
+            enum:
+            - none
+            - auto
+            - required
+          - $ref: '#/components/schemas/ChatCompletionNamedToolChoice'
+        response_format:
+          $ref: '#/components/schemas/ChatCompletionResponseFormat'
+        logprobs:
+          type: boolean
+        top_logprobs:
+          type: integer
+          description: Clamped to the supported account/provider range.
+        logit_bias:
+          type: object
+          additionalProperties:
+            type: number
+        n:
+          type: integer
+          description: Always treated as 1
+        user:
+          type: string
+          description: Accepted and ignored by the server.
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+          description: Accepted and ignored by the server.
+        reasoning_effort:
+          type:
+          - string
+          - 'null'
+          enum:
+          - none
+          - minimal
+          - low
+          - medium
+          - high
+          - xhigh
+          - max
+          - null
+          description: Omitted/null uses the provider default. Explicit efforts must be supported by the resolved
+            endpoint.
+      description: 'Supported client input forms. Unknown fields are ignored. Numeric settings are clamped
+        to account limits; unusable optional values fall back to defaults. Only stream: true enables streaming.
+        n is always treated as 1.'
+
+    ChatCompletionMessageParam:
+      type: object
+      required:
+      - role
+      properties:
+        role:
+          type: string
+          enum:
+          - system
+          - developer
+          - user
+          - assistant
+          - tool
+          - function
+        content:
+          oneOf:
+          - type: string
+          - type: array
+            items:
+              $ref: '#/components/schemas/ChatCompletionContentPart'
+          - type: 'null'
+        name:
+          type: string
+        tool_call_id:
+          type: string
+        tool_calls:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatCompletionMessageToolCall'
+
+    ChatCompletionContentPart:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - text
+          - image_url
+        text:
+          type: string
+        image_url:
+          $ref: '#/components/schemas/ChatCompletionImageUrl'
+      allOf:
+      - if:
+          properties:
+            type:
+              const: text
+        then:
+          required:
+          - text
+      - if:
+          properties:
+            type:
+              const: image_url
+        then:
+          required:
+          - image_url
+
+    ChatCompletionTool:
+      type: object
+      required:
+      - type
+      - function
+      properties:
+        type:
+          type: string
+          enum:
+          - function
+        function:
+          $ref: '#/components/schemas/ChatCompletionFunction'
+
+    ChatCompletionMessageToolCall:
+      type: object
+      required:
+      - id
+      - type
+      - function
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum:
+          - function
+        function:
+          $ref: '#/components/schemas/ChatCompletionFunctionCall'
+
+    ChatCompletionUsage:
+      type: object
+      required:
+      - prompt_tokens
+      - completion_tokens
+      - total_tokens
+      properties:
+        prompt_tokens:
+          type: integer
+        completion_tokens:
+          type: integer
+        total_tokens:
+          type: integer
+        prompt_tokens_details:
+          $ref: '#/components/schemas/ChatCompletionPromptTokenDetails'
+        completion_tokens_details:
+          $ref: '#/components/schemas/ChatCompletionCompletionTokenDetails'
+
+    ChatCompletion:
+      type: object
+      required:
+      - id
+      - object
+      - created
+      - model
+      - choices
+      properties:
+        id:
+          type: string
+          example: chatcmpl-abc123
+        object:
+          type: string
+          enum:
+          - chat.completion
+        created:
+          type: integer
+          description: Unix seconds
+        model:
+          type: string
+          description: Resolved Sully alias
+        choices:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatCompletionChoice'
+        usage:
+          $ref: '#/components/schemas/ChatCompletionUsage'
+          description: Present only when all token totals are measured; omitted when unavailable.
+
+    ChatCompletionChunk:
+      type: object
+      required:
+      - id
+      - object
+      - created
+      - model
+      - choices
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+          enum:
+          - chat.completion.chunk
+        created:
+          type: integer
+        model:
+          type: string
+        choices:
+          type: array
+          description: Empty in the final usage chunk
+          items:
+            $ref: '#/components/schemas/ChatCompletionChunkChoice'
+        usage:
+          anyOf:
+          - $ref: '#/components/schemas/ChatCompletionUsage'
+          - type: 'null'
+          description: Only in the final usage frame when requested; null when complete counters are unavailable.
+
+    Model:
+      type: object
+      required:
+      - id
+      - object
+      - created
+      - owned_by
+      properties:
+        id:
+          type: string
+          example: sully-clinical-1
+        object:
+          type: string
+          enum:
+          - model
+        created:
+          type: integer
+        owned_by:
+          type: string
+          enum:
+          - sully
+
+    ModelList:
+      type: object
+      required:
+      - object
+      - data
+      properties:
+        object:
+          type: string
+          enum:
+          - list
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Model'
+
+    OpenAIErrorResponse:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          $ref: '#/components/schemas/OpenAIError'
+
+    HeadingSectionProperties:
+      type: object
+      required:
+      - level
+      - text
+      properties:
+        bold:
+          type: boolean
+        italic:
+          type: boolean
+        hideIfEmpty:
+          type: boolean
+        hide_if_empty:
+          type: boolean
+        level:
+          type: number
+          minimum: 0
+          maximum: 6
+        text:
+          type: string
+
+    TextSectionProperties:
+      allOf:
+      - $ref: '#/components/schemas/TextContentProperties'
+      type: object
+      properties:
+        label:
+          type: string
+          description: An optional label for the text section.
+        bold_label:
+          type: boolean
+          description: Whether the label should be bold.
+        italic_label:
+          type: boolean
+          description: Whether the label should be italicized.
+        list_type:
+          type: string
+          enum:
+          - bullet
+          - numeric
+          description: Defines whether text should be formatted as a bullet or numeric list.
+        min_sentences:
+          type: number
+          description: Minimum number of sentences required.
+        max_sentences:
+          type: number
+          description: Maximum number of sentences allowed.
+        min_paragraphs:
+          type: number
+          description: Minimum number of paragraphs required.
+        max_paragraphs:
+          type: number
+          description: Maximum number of paragraphs allowed.
+
+    ListSectionProperties:
+      allOf:
+      - $ref: '#/components/schemas/TextContentProperties'
+      type: object
+      properties:
+        list_type:
+          type: string
+          enum:
+          - bullet
+          - numeric
+          description: Defines whether the list is bulleted or numbered.
+        min_items:
+          type: number
+          description: Minimum number of items required in the list.
+        max_items:
+          type: number
+          description: Maximum number of items allowed in the list.
+      required:
+      - list_type
+
+    AuthenticationError:
+      type: object
+      required:
+      - message
+      properties:
+        message:
+          type: string
+
+    ApiErrorData:
+      type: object
+      required:
+      - message
+      properties:
+        message:
+          type: string
+        code:
+          type: string
+        validationErrors:
+          type: object
+          additionalProperties: true
+
+    ApiError:
+      type: object
+      required:
+      - status
+      - data
+      - date
+      properties:
+        status:
+          type: string
+          enum:
+          - error
+        data:
+          $ref: '#/components/schemas/ApiErrorData'
+        date:
+          type: string
+          format: date-time
+        errorType:
+          type: string
+
+    NoteV2Type:
+      type: object
+      required:
+      - type
+      additionalProperties: true
+      properties:
+        type:
+          type: string
+          enum:
+          - soap
+          - custom
+          - note_style
+          - note_template
+          description: '`soap` uses the default SOAP template; `custom` and `note_style` take a string `template`;
+            `note_template` takes a NoteTemplate object.'
+        template:
+          oneOf:
+          - type: string
+          - $ref: '#/components/schemas/NoteTemplate'
+        includeJson:
+          type: boolean
+          default: false
+          description: Also return `payload.json`. Increases latency and payload size.
+      description: note_template requires a NoteTemplate object. Other styles accept an optional string or
+        template object; unknown noteType fields are retained.
+      allOf:
+      - if:
+          properties:
+            type:
+              const: note_template
+          required:
+          - type
+        then:
+          required:
+          - template
+          properties:
+            template:
+              $ref: '#/components/schemas/NoteTemplate'
+
+    NotePatientInfo:
+      type:
+      - object
+      - 'null'
+      additionalProperties: true
+      properties:
+        name:
+          type: string
+        dateOfBirth:
+          type: string
+          description: ISO-8601 date (YYYY-MM-DD) recommended
+        gender:
+          type: string
+          description: e.g. male, female, other, prefer not to say, unspecified
+
+    NoteAcceptedData:
+      type: object
+      required:
+      - noteId
+      properties:
+        noteId:
+          type: string
+          example: note_example_01
+
+    NoteV2:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+          - STATUS_PROCESSING
+          - STATUS_DONE
+          - STATUS_ERROR
+        payload:
+          $ref: '#/components/schemas/NotePayload'
+        error:
+          type: string
+          description: Fixed failure message on STATUS_ERROR
+          example: Failed to generate note
+        timestamp:
+          $ref: '#/components/schemas/NoteTimestamps'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      description: Persisted note resource. Fields can be absent on historical records; newly accepted V2
+        notes include status, payload, timestamp, created_at and updated_at.
+
+    NotePayload:
+      type: object
+      properties:
+        markdown:
+          type: string
+        json:
+          type: object
+          additionalProperties: true
+          description: Structured note with snake_case keys; present when `includeJson` was true
+
+    NoteTimestamps:
+      type: object
+      properties:
+        start:
+          type: integer
+          description: Epoch milliseconds
+        complete:
+          type: integer
+          description: Epoch milliseconds
+
+    NoteDeletedData:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Note deleted successfully
+      required:
+      - message
+
+    NoteV3TemplateSection:
+      type: object
+      additionalProperties: false
+      required:
+      - title
+      - instructions
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Trimmed before validation; titles must be unique after trimming.
+        instructions:
+          type: string
+          maxLength: 10000
+
+    NoteV3Patient:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 256
+        age:
+          type: integer
+          minimum: 0
+          maximum: 150
+        gender:
+          type: string
+          minLength: 1
+          maxLength: 256
+
+    NoteV3Medication:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 256
+        description:
+          type: string
+          maxLength: 10000
+
+    NoteV3PastVisit:
+      type: object
+      additionalProperties: false
+      required:
+      - content
+      properties:
+        date:
+          type: string
+          minLength: 1
+          maxLength: 256
+        content:
+          type: string
+          maxLength: 10000
+
+    NoteV3ContextItem:
+      type: object
+      additionalProperties: false
+      required:
+      - label
+      - content
+      properties:
+        label:
+          type: string
+          minLength: 1
+          maxLength: 256
+        content:
+          type: string
+          maxLength: 10000
+
+    NoteV3Usage:
+      type: object
+      description: Diagnostic token counts; absent when unavailable. Never affects price.
+      required:
+      - inputTokens
+      - outputTokens
+      properties:
+        inputTokens:
+          type: integer
+        outputTokens:
+          type: integer
+
+    ChatCompletionResponseFormatText:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - text
+
+    ChatCompletionResponseFormatJsonObject:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - json_object
+
+    ChatCompletionJsonSchema:
+      type: object
+      required:
+      - schema
+      properties:
+        name:
+          type: string
+          pattern: ^[a-zA-Z0-9_-]+$
+        description:
+          type: string
+        schema:
+          type: object
+          additionalProperties: true
+        strict:
+          type: boolean
+          default: false
+
+    ChatCompletionResponseFormatJsonSchema:
+      type: object
+      required:
+      - type
+      - json_schema
+      properties:
+        type:
+          type: string
+          enum:
+          - json_schema
+        json_schema:
+          $ref: '#/components/schemas/ChatCompletionJsonSchema'
+
+    ChatCompletionResponseFormat:
+      oneOf:
+      - $ref: '#/components/schemas/ChatCompletionResponseFormatText'
+      - $ref: '#/components/schemas/ChatCompletionResponseFormatJsonObject'
+      - $ref: '#/components/schemas/ChatCompletionResponseFormatJsonSchema'
+      description: Structured output is applied when supported by the resolved endpoint; JSON schema may degrade
+        to JSON mode. Malformed values fall back; generated output is not server-validated against the schema.
+
+    ChatCompletionStreamOptions:
+      type: object
+      properties:
+        include_usage:
+          type: boolean
+
+    ChatCompletionPromptTokenDetails:
+      type: object
+      required:
+      - cached_tokens
+      properties:
+        cached_tokens:
+          type: integer
+
+    ChatCompletionCompletionTokenDetails:
+      type: object
+      required:
+      - reasoning_tokens
+      properties:
+        reasoning_tokens:
+          type: integer
+
+    ChatCompletionChoice:
+      type: object
+      required:
+      - index
+      - finish_reason
+      - message
+      - logprobs
+      properties:
+        index:
+          type: integer
+        finish_reason:
+          type: string
+          enum:
+          - stop
+          - length
+          - tool_calls
+          - content_filter
+        logprobs:
+          type:
+          - string
+          - 'null'
+          const: null
+          description: Always null; token log probabilities are not returned.
+        message:
+          $ref: '#/components/schemas/ChatCompletionMessage'
+
+    ChatCompletionMessage:
+      type: object
+      required:
+      - role
+      - content
+      - refusal
+      properties:
+        role:
+          type: string
+          enum:
+          - assistant
+        content:
+          type:
+          - string
+          - 'null'
+        refusal:
+          type:
+          - string
+          - 'null'
+          const: null
+          description: Always null.
+        tool_calls:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatCompletionMessageToolCall'
+
+    ChatCompletionChunkChoice:
+      type: object
+      required:
+      - index
+      - delta
+      - finish_reason
+      properties:
+        index:
+          type: integer
+        finish_reason:
+          type:
+          - string
+          - 'null'
+          enum:
+          - stop
+          - length
+          - tool_calls
+          - content_filter
+          - null
+        delta:
+          $ref: '#/components/schemas/ChatCompletionDelta'
+
+    ChatCompletionDelta:
+      type: object
+      properties:
+        role:
+          type: string
+          enum:
+          - assistant
+        content:
+          type:
+          - string
+          - 'null'
+        tool_calls:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatCompletionToolCallDelta'
+
+    ChatCompletionToolCallDelta:
+      type: object
+      required:
+      - index
+      properties:
+        index:
+          type: integer
+        id:
+          type: string
+        type:
+          type: string
+          enum:
+          - function
+        function:
+          $ref: '#/components/schemas/ChatCompletionFunctionDelta'
+
+    ChatCompletionFunctionDelta:
+      type: object
+      properties:
+        name:
+          type: string
+        arguments:
+          type: string
+
+    ChatCompletionFunction:
+      type: object
+      required:
+      - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        parameters:
+          type: object
+          additionalProperties: true
+
+    ChatCompletionFunctionCall:
+      type: object
+      required:
+      - name
+      - arguments
+      properties:
+        name:
+          type: string
+        arguments:
+          type: string
+          description: JSON-encoded arguments
+
+    ChatCompletionTextPart:
+      type: object
+      required:
+      - type
+      - text
+      properties:
+        type:
+          type: string
+          enum:
+          - text
+        text:
+          type: string
+
+    ChatCompletionImagePart:
+      type: object
+      required:
+      - type
+      - image_url
+      properties:
+        type:
+          type: string
+          enum:
+          - image_url
+        image_url:
+          $ref: '#/components/schemas/ChatCompletionImageUrl'
+
+    ChatCompletionImageUrl:
+      type: object
+      required:
+      - url
+      properties:
+        url:
+          type: string
+          description: Must be a `data:` URL; remote URLs are rejected
+        detail:
+          type: string
+
+    ChatCompletionNamedToolChoice:
+      type: object
+      required:
+      - type
+      - function
+      properties:
+        type:
+          type: string
+          enum:
+          - function
+        function:
+          $ref: '#/components/schemas/ChatCompletionFunctionName'
+
+    ChatCompletionFunctionName:
+      type: object
+      required:
+      - name
+      properties:
+        name:
+          type: string
+
+    OpenAIError:
+      type: object
+      required:
+      - message
+      - type
+      - param
+      - code
+      properties:
+        message:
+          type: string
+        type:
+          type: string
+          description: invalid_request_error, server_error, or for 429 `requests` / `tokens`
+          enum:
+          - invalid_request_error
+          - server_error
+          - requests
+          - tokens
+        param:
+          type:
+          - string
+          - 'null'
+        code:
+          type: string
+          enum:
+          - invalid_value
+          - too_many_messages
+          - context_length_exceeded
+          - invalid_api_key
+          - unknown_url
+          - model_not_found
+          - request_too_large
+          - rate_limit_exceeded
+          - internal_error
+          - engine_overloaded
+          - upstream_timeout
+          - insufficient_funds
+          - billing_provider_unavailable
+          - billing_conflict
+
+    CreateV2TranscriptionPayload:
+      type: object
+      required:
+      - audio
+      properties:
+        audio:
+          type: string
+          format: binary
+          description: One binary audio file, maximum 100 MiB (104857600 bytes). Send its actual supported
+            audio Content-Type; application/octet-stream is rejected.
+        language:
+          $ref: '#/components/schemas/V2LanguageCode'
+        encoding:
+          $ref: '#/components/schemas/V2AudioEncoding'
+        multichannel:
+          type: boolean
+          default: false
+          description: Enable multichannel audio processing
+        dictation:
+          type: boolean
+          default: false
+          description: Enable dictation-oriented transcript formatting. When sent as multipart form-data,
+            provide `true` or `false`.
+
+    AudioTranscriptionAcceptedData:
+      type: object
+      properties:
+        transcriptionId:
+          type: string
+          description: Unique identifier for the audio transcription request.
+          example: tr_EXAMPLE123456789
+        message:
+          type: string
+          description: Informational message about the request status.
+          example: Audio upload successful. Transcription in progress.
+        status:
+          type: string
+          enum:
+          - STATUS_PROCESSING
+      required:
+      - transcriptionId
+      - message
+      - status
+
+    AudioTranscriptionData:
+      type: object
+      properties:
+        payload:
+          type: object
+          description: Either markdown or JSON representation of the note. Both can be present as well.
+          properties:
+            transcription:
+              type: string
+              description: Transcription of the audio
+        timestamp:
+          type: object
+          properties:
+            start:
+              type: integer
+              example: 1731014849730
+              description: Start timestamp
+            complete:
+              type: integer
+              example: 1731014853958
+              description: Complete timestamp
+        transcriptionId:
+          type: string
+          example: tr_EXAMPLE123456789
+          description: Unique identifier for the audio transcription
+        status:
+          type: string
+          enum:
+          - STATUS_PROCESSING
+          - STATUS_DONE
+          - STATUS_ERROR
+        error:
+          type: string
+      required:
+      - transcriptionId
+      - status
+      - payload
+
+    CreateAudioTranscriptionJsonPayload:
+      type: object
+      required:
+      - audio
+      - encoding
+      - filename
+      properties:
+        audio:
+          type: string
+          minLength: 1
+          contentEncoding: base64
+        encoding:
+          type: string
+          enum:
+          - base64
+        filename:
+          type: string
+          minLength: 1
+        language:
+          type: string
+
+    CreateStreamingTranscriptionTokenPayload:
+      type: object
+      properties:
+        expiresIn:
+          type: number
+          description: Duration of the token in seconds
+          example: 3600
+          minimum: 60
+          maximum: 604800
+          default: 60
+
+    StreamingTranscriptionTokenData:
+      type: object
+      required:
+      - token
+      properties:
+        token:
+          type: string
+
+    CreateStreamingTranscriptionTokenResponse:
+      type: object
+      required:
+      - status
+      - data
+      - date
+      properties:
+        status:
+          type: string
+          enum:
+          - ok
+        data:
+          $ref: '#/components/schemas/StreamingTranscriptionTokenData'
+        date:
+          type: string
+          format: date-time
+
   securitySchemes:
     apiKeyAuth:
       type: apiKey
       in: header
-      name: X-API-KEY
+      name: X-API-Key
+      description: Required together with the other Sully authentication header.
     accountIdAuth:
       type: apiKey
       in: header
-      name: X-ACCOUNT-ID
-
+      name: X-Account-Id
+      description: Required together with the other Sully authentication header.
+    compatCompositeBearerAuth:
+      type: http
+      scheme: bearer
+      description: 'OpenAI-compatible routes only: <account-id>:<api-key>. A bare key requires X-Account-Id
+        via compatBearerAuth.'
+    compatBearerAuth:
+      type: http
+      scheme: bearer
+      description: 'OpenAI-compatible routes only: API key with the required X-Account-Id header.'
+  headers:
+    RequestId:
+      description: Server request identifier.
+      schema:
+        type: string
+    RetryAfter:
+      description: Retry delay in seconds when supplied; does not make a POST idempotent.
+      schema:
+        type: integer
+        minimum: 0
   responses:
-    # V2 Transcription Responses
     V2BadRequest:
       description: Bad request - invalid input
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/V2Error'
+            anyOf:
+            - $ref: '#/components/schemas/V2Error'
+            - $ref: '#/components/schemas/V2ValidationError'
           examples:
             missing_file:
               summary: Missing audio file
               value:
-                error: "No audio file provided"
+                error: No audio file provided
             invalid_file_type:
               summary: Unsupported file type
               value:
-                error: "Unsupported file type: text/plain"
-
+                error: Unsupported audio file type
     V2Unauthorized:
-      description: Unauthorized - missing or invalid API key
+      description: Missing or invalid API key/account ID
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/V2Error'
-          examples:
-            missing_credentials:
-              summary: Missing API credentials
-              value:
-                error: "Missing API key or Account ID"
-            invalid_api_key:
-              summary: Invalid API key
-              value:
-                error: "Invalid API key"
-
+            $ref: '#/components/schemas/AuthenticationError'
     V2NotFound:
       description: Resource not found
       content:
@@ -2112,8 +3837,7 @@ components:
             transcription_not_found:
               summary: Transcription not found
               value:
-                error: "Transcription not found"
-
+                error: Transcription not found
     V2ValidationError:
       description: Validation error - invalid request data
       content:
@@ -2124,10 +3848,12 @@ components:
             language_validation:
               summary: Invalid language code
               value:
-                error: "Invalid request data"
+                error: Invalid request data
                 details:
-                  language: "Invalid language code. Must be one of: en, es, de, fr, hi, it, ja, nl, pt, ru, bg, ca, zh, zh-CN, zh-Hans, zh-TW, zh-Hant, zh-HK, cs, da, da-DK, en-AU, en-GB, en-NZ, en-IN, et, fi, nl-BE, fr-CA, de-CH, el, hu, id, ko, ko-KR, lv, lt, ms, no, pl, pt-BR, pt-PT, ro, sk, es-419, sv, sv-SE, th, th-TH, tr, uk, vi"
-
+                  language: 'Invalid language code. Must be one of: en, es, de, fr, hi, it, ja, nl, pt,
+                    ru, bg, ca, zh, zh-CN, zh-Hans, zh-TW, zh-Hant, zh-HK, cs, da, da-DK, en-AU, en-GB,
+                    en-NZ, en-IN, et, fi, nl-BE, fr-CA, de-CH, el, hu, id, ko, ko-KR, lv, lt, ms, no, pl,
+                    pt-BR, pt-PT, ro, sk, es-419, sv, sv-SE, th, th-TH, tr, uk, vi'
     V2PayloadTooLarge:
       description: File too large
       content:
@@ -2138,8 +3864,7 @@ components:
             file_too_large:
               summary: File exceeds size limit
               value:
-                error: "File too large"
-
+                error: File too large
     V2RateLimitExceeded:
       description: Rate limit exceeded
       headers:
@@ -2158,7 +3883,7 @@ components:
           schema:
             type: string
             format: date-time
-            example: "2024-01-15T11:00:00Z"
+            example: '2024-01-15T11:00:00Z'
         Retry-After:
           description: Seconds to wait before retrying
           schema:
@@ -2168,15 +3893,313 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/V2RateLimitError'
-
     V2InternalServerError:
       description: Internal server error
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/V2Error'
+            anyOf:
+            - $ref: '#/components/schemas/V2Error'
+            - $ref: '#/components/schemas/AuthenticationError'
           examples:
             server_error:
               summary: Generic server error
               value:
-                error: "Internal Server Error"
+                error: Internal Server Error
+    AuthenticationError:
+      description: Missing or invalid API key/account ID
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AuthenticationError'
+    NoteV2ErrorResponse:
+      description: Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NoteV2Error'
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+    NoteV2Unauthorized:
+      description: Authentication failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NoteV2Error'
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+    NoteV2NotFound:
+      description: Note not found or endpoint disabled
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NoteV2Error'
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+    NoteV2InternalError:
+      description: Internal error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NoteV2Error'
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+    NoteV2Unavailable:
+      description: Service unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NoteV2Error'
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+    NoteV2Timeout:
+      description: Setup timed out
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NoteV2Error'
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+    NoteV2BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NoteV2Error'
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+    NoteV2InsufficientCredits:
+      description: Insufficient credits
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NoteV2Error'
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+    NoteV2BillingConflict:
+      description: Billing conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NoteV2Error'
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+    NoteV2UnprocessableEntity:
+      description: Template unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NoteV2Error'
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+    NoteV2RateLimited:
+      description: Admission rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NoteV2Error'
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+    NoteV2GenerationFailed:
+      description: Invalid generation response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NoteV2Error'
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+    NoteV3ErrorResponse:
+      description: Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NoteV3Error'
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+    NoteV3BadRequest:
+      description: Invalid request, including malformed or oversized JSON (1 MiB limit)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NoteV3Error'
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+    NoteV3Unauthorized:
+      description: Authentication failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NoteV3Error'
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+    NoteV3InsufficientCredits:
+      description: Insufficient credits
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NoteV3Error'
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+    NoteV3NotFound:
+      description: Endpoint disabled
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NoteV3Error'
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+    NoteV3GenerationFailed:
+      description: Generation failed or returned an invalid response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NoteV3Error'
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+    NoteV3Unavailable:
+      description: Generation or billing unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NoteV3Error'
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+    NoteV3Timeout:
+      description: Generation timed out
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NoteV3Error'
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+    OpenAIErrorResponse:
+      description: Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OpenAIErrorResponse'
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+    OpenAIBadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OpenAIErrorResponse'
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+    OpenAIUnauthorized:
+      description: Invalid credentials
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OpenAIErrorResponse'
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+    OpenAINotFound:
+      description: Endpoint or model unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OpenAIErrorResponse'
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+    OpenAIInternalError:
+      description: Internal error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OpenAIErrorResponse'
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+    OpenAIUnavailable:
+      description: Service unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OpenAIErrorResponse'
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+    OpenAIInsufficientCredits:
+      description: Insufficient funds
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OpenAIErrorResponse'
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+    OpenAIBillingConflict:
+      description: Billing conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OpenAIErrorResponse'
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+    OpenAIPayloadTooLarge:
+      description: Request body exceeds 32 MiB
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OpenAIErrorResponse'
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+    OpenAIRateLimited:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OpenAIErrorResponse'
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+    OpenAITimeout:
+      description: Request deadline exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OpenAIErrorResponse'
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
