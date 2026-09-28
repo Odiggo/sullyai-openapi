@@ -414,7 +414,7 @@ paths:
 
         Processing is asynchronous - the endpoint returns immediately with a `pending` status.
 
-        Use the GET endpoint to check status and retrieve results.
+        Use `GET /v2/audio/transcriptions/{id}` with the returned transcription ID to check status and retrieve results.
 
         '
       operationId: createV2Transcription
@@ -3655,8 +3655,8 @@ components:
         dictation:
           type: boolean
           default: false
-          description: Enable dictation-oriented transcript formatting. When sent as multipart form-data,
-            provide `true` or `false`.
+          description: Enable dictation-oriented transcript formatting. Defaults to `false` when omitted.
+            When sent as multipart form-data, provide `true` or `false`.
 
     AudioTranscriptionAcceptedData:
       type: object
