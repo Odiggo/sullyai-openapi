@@ -14,9 +14,9 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     steps:
-      - name: Report polling fallback when App is not configured
+      - name: Explain manual SDK updates when App is not configured
         if: vars.SDK_APP_ID == ''
-        run: echo 'SDK_APP_ID is absent. Node scheduled polling picks up canonical main after its workflow is merged; no cross-repository dispatch was sent.' >> "$GITHUB_STEP_SUMMARY"
+        run: echo 'SDK_APP_ID is absent; no cross-repository dispatch was sent. Run Update SDK from OpenAPI manually in sullyai-node Actions on main.' >> "$GITHUB_STEP_SUMMARY"
       - name: Create installation token for Node repository only
         if: vars.SDK_APP_ID != ''
         id: app
