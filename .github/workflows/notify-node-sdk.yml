@@ -1,0 +1,37 @@
+name: Notify Node SDK of OpenAPI changes
+on:
+  push:
+    branches: [main]
+    paths: [openapi.yaml]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: notify-node-sdk
+  cancel-in-progress: false
+jobs:
+  notify:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report polling fallback when App is not configured
+        if: vars.SDK_APP_ID == ''
+        run: echo 'SDK_APP_ID is absent. Node scheduled polling picks up canonical main after its workflow is merged; no cross-repository dispatch was sent.' >> "$GITHUB_STEP_SUMMARY"
+      - name: Create installation token for Node repository only
+        if: vars.SDK_APP_ID != ''
+        id: app
+        uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2
+        with:
+          app-id: ${{ vars.SDK_APP_ID }}
+          private-key: ${{ secrets.SDK_APP_PRIVATE_KEY }}
+          owner: Odiggo
+          repositories: sullyai-node
+          permission-contents: write
+      - name: Dispatch exact merged source SHA
+        if: vars.SDK_APP_ID != ''
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          SPEC_SHA: ${{ github.sha }}
+        run: |
+          jq -n --arg sha "$SPEC_SHA" '{event_type:"openapi-updated",client_payload:{spec_sha:$sha}}' |
+            gh api --method POST repos/Odiggo/sullyai-node/dispatches --input -
