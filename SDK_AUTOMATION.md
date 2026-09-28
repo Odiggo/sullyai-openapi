@@ -22,10 +22,20 @@ Without `SDK_APP_CLIENT_ID`, no notification is sent; the workflow summary direc
 
 Manual updates use Node's repository token. Node must have Actions enabled and “Allow GitHub Actions to create and approve pull requests” enabled (verified enabled during implementation). The updater requests Contents/PR write and Actions write to explicitly dispatch read-only CI; ordinary GITHUB_TOKEN-created PR/push events are not relied on to start checks. Canonical OpenAPI is currently public. If it becomes private, configure narrowly scoped read access as well.
 
-PR #19 is merged at `f7ad63f875ebbc972add1bb8eb578bc9a92a4460`; Node's initial snapshot tracks that verified main commit. Python, existing spec validation and required reviews are unchanged. No automatic merge or registry publication occurs.
+PR #19 is merged at `f7ad63f875ebbc972add1bb8eb578bc9a92a4460`; Node's initial snapshot tracks that verified main commit. Existing spec validation and required reviews are unchanged. No automatic merge or registry publication occurs.
 
 References: [register a GitHub App](https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/registering-a-github-app), [App token action](https://github.com/actions/create-github-app-token), [workflow token event behavior](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow).
 
 ### Private-key parsing errors
 
 `Invalid keyData` or ASN.1 `wrong tag` means the signing key could not be parsed; changing the client ID does not repair the key. Set `SDK_APP_PRIVATE_KEY` to the complete downloaded GitHub App PEM file, including its original BEGIN/END lines and all line breaks. Do not use the OAuth client secret or change the PEM header. Validate the downloaded file without displaying its contents using `openssl pkey -in /path/to/app.pem -check -noout`, then upload it directly with `gh secret set SDK_APP_PRIVATE_KEY --repo Odiggo/sullyai-openapi < /path/to/app.pem` and the same command for `Odiggo/sullyai-node`.
+
+## Python SDK notifications
+
+`.github/workflows/notify-python-sdk.yml` uses the same pinned-generator update protocol for [sullyai-python](https://github.com/Odiggo/sullyai-python). It runs independently of the Node notifier, so a Python configuration failure cannot block Node notifications. A push changing `openapi.yaml` on main sends the exact source SHA; the workflow also supports manual replay on main.
+
+Before enabling automatic Python updates, open the existing **Sully SDK Updates** GitHub App installation in Odiggo and add **sullyai-python** to its selected repositories. Keep the existing Contents write permission. Reuse the `SDK_APP_CLIENT_ID` variable and `SDK_APP_PRIVATE_KEY` secret already configured in this OpenAPI repository. No new key or secret is needed here.
+
+The Python updater can use its repository `GITHUB_TOKEN` to commit and create its draft PR, then explicitly dispatch read-only SDK CI. Consequently, Python needs no copy of the App key for this setup. Its Actions setting **Allow GitHub Actions to create and approve pull requests** must be enabled. Optionally configure the same App ID/key in Python to match Node's App-authenticated commits.
+
+After the Python repository has its workflows on main and this notifier is merged, run **Notify Python SDK of OpenAPI changes** on main. Verify the downstream **Update SDK from OpenAPI** run, and (when contract contents differ) the draft PR and SDK CI. Same-content or repeated dispatches produce no duplicate PR. There is no automatic merge or PyPI publication.
